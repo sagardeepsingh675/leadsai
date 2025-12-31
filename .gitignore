@@ -35,3 +35,12 @@ coverage
 
 # TypeScript
 *.tsbuildinfo
+
+# Security - Prevent API key exposure
+DEPLOY.md
+**/DEPLOY.md
+*.secrets
+*.key
+**/secrets/
+deploy-notes*.md
+*-api-key*

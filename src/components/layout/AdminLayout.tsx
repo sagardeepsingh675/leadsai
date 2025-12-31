@@ -10,14 +10,20 @@ import {
     X,
     ArrowLeft,
     Crown,
+    BarChart3,
+    Key,
+    History,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials } from '../../lib/utils';
 
 const adminLinks = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Manage Users', href: '/admin/users', icon: Users },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
+    { name: 'API Settings', href: '/admin/api', icon: Key },
+    { name: 'Audit Logs', href: '/admin/logs', icon: History },
     { name: 'Site Settings', href: '/admin/settings', icon: Settings },
 ];
 

@@ -25,8 +25,11 @@ import Settings from './pages/Settings';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageSubscriptions from './pages/admin/ManageSubscriptions';
+import AdminApiSettings from './pages/admin/AdminApiSettings';
+import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 import SiteSettings from './pages/admin/SiteSettings';
 
 // Components
@@ -136,8 +139,11 @@ function App() {
                 }
             >
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/users" element={<ManageUsers />} />
                 <Route path="/admin/subscriptions" element={<ManageSubscriptions />} />
+                <Route path="/admin/api" element={<AdminApiSettings />} />
+                <Route path="/admin/logs" element={<AdminAuditLogs />} />
                 <Route path="/admin/settings" element={<SiteSettings />} />
             </Route>
 
