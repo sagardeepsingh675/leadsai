@@ -1,0 +1,361 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================
+   STACHBIT LEAD GENERATOR STYLES
+   ================================ */
+
+:root {
+  --primary: #0ea5e9;
+  --primary-dark: #0284c7;
+  --accent: #d946ef;
+  --accent-dark: #c026d3;
+  --dark-bg: #0f172a;
+  --dark-surface: #1e293b;
+  --dark-border: #334155;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--dark-bg);
+  color: #f1f5f9;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ================================
+   SCROLLBAR STYLING
+   ================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* ================================
+   GLASS MORPHISM EFFECTS
+   ================================ */
+
+@layer components {
+  .glass {
+    @apply bg-dark-800/50 backdrop-blur-xl border border-dark-700/50;
+  }
+
+  .glass-card {
+    @apply bg-gradient-to-br from-dark-800/80 to-dark-900/80 backdrop-blur-xl border border-dark-700/50 rounded-2xl;
+  }
+
+  .glass-button {
+    @apply bg-dark-800/50 backdrop-blur-md border border-dark-700/50 hover:bg-dark-700/50 transition-all duration-300;
+  }
+
+  /* ================================
+     GRADIENT TEXT
+     ================================ */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-400 via-primary-500 to-accent-500 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-reverse {
+    @apply bg-gradient-to-r from-accent-400 via-accent-500 to-primary-500 bg-clip-text text-transparent;
+  }
+
+  /* ================================
+     BUTTONS
+     ================================ */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40;
+  }
+
+  .btn-secondary {
+    @apply btn bg-dark-700 hover:bg-dark-600 text-white border border-dark-600 hover:border-dark-500;
+  }
+
+  .btn-accent {
+    @apply btn bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white shadow-lg shadow-accent-500/25 hover:shadow-accent-500/40;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-primary-500 text-primary-400 hover:bg-primary-500 hover:text-white;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent hover:bg-dark-800 text-dark-200;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
+  /* ================================
+     FORM INPUTS
+     ================================ */
+  .input {
+    @apply w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white placeholder-dark-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all duration-300;
+  }
+
+  .input-error {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-500/20;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-dark-300 mb-2;
+  }
+
+  .select {
+    @apply w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-white focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all duration-300 cursor-pointer appearance-none;
+  }
+
+  /* ================================
+     CARDS
+     ================================ */
+  .card {
+    @apply bg-dark-800 border border-dark-700 rounded-2xl p-6 transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply card hover:border-primary-500/50 hover:shadow-lg hover:shadow-primary-500/10 hover:transform hover:-translate-y-1;
+  }
+
+  .card-glow {
+    @apply card hover:shadow-xl hover:shadow-primary-500/20;
+  }
+
+  /* ================================
+     BADGES
+     ================================ */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-500/20 text-primary-400 border border-primary-500/30;
+  }
+
+  .badge-success {
+    @apply badge bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+
+  .badge-warning {
+    @apply badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent-500/20 text-accent-400 border border-accent-500/30;
+  }
+
+  /* ================================
+     NAVIGATION
+     ================================ */
+  .nav-link {
+    @apply text-dark-300 hover:text-white transition-colors duration-200 font-medium;
+  }
+
+  .nav-link-active {
+    @apply text-primary-400;
+  }
+
+  /* ================================
+     SECTION STYLES
+     ================================ */
+  .section {
+    @apply py-20 px-4;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-bold text-center mb-4;
+  }
+
+  .section-subtitle {
+    @apply text-dark-400 text-center text-lg max-w-2xl mx-auto mb-12;
+  }
+
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* ================================
+   ANIMATIONS
+   ================================ */
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Floating animation for hero elements */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+/* Glowing orbs */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+.glow-orb-primary {
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+}
+
+.glow-orb-accent {
+  background: linear-gradient(135deg, #d946ef, #ec4899);
+}
+
+/* Mesh gradient background */
+.mesh-gradient {
+  background: 
+    radial-gradient(at 80% 0%, rgba(14, 165, 233, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(217, 70, 239, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+}
+
+/* Grid pattern overlay */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* ================================
+   LOADING STATES
+   ================================ */
+
+.skeleton {
+  @apply bg-dark-700 animate-pulse rounded;
+}
+
+.spinner {
+  @apply inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin;
+}
+
+/* ================================
+   TOOLTIP
+   ================================ */
+
+.tooltip {
+  @apply relative;
+}
+
+.tooltip::after {
+  @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-dark-700 text-white text-xs rounded-lg opacity-0 invisible transition-all duration-200 whitespace-nowrap;
+  content: attr(data-tooltip);
+}
+
+.tooltip:hover::after {
+  @apply opacity-100 visible;
+}
+
+/* ================================
+   TABLE STYLES
+   ================================ */
+
+.table {
+  @apply w-full text-left border-collapse;
+}
+
+.table th {
+  @apply px-6 py-4 bg-dark-800 text-dark-300 font-semibold text-sm uppercase tracking-wider border-b border-dark-700;
+}
+
+.table td {
+  @apply px-6 py-4 border-b border-dark-700;
+}
+
+.table tbody tr {
+  @apply hover:bg-dark-800/50 transition-colors;
+}
+
+/* ================================
+   SCORE INDICATORS
+   ================================ */
+
+.score-good {
+  @apply text-green-400;
+}
+
+.score-average {
+  @apply text-yellow-400;
+}
+
+.score-poor {
+  @apply text-red-400;
+}
+
+.score-none {
+  @apply text-dark-500;
+}
+
+/* ================================
+   RESPONSIVE UTILITIES
+   ================================ */
+
+@media (max-width: 640px) {
+  .section-title {
+    @apply text-2xl;
+  }
+  
+  .section {
+    @apply py-12;
+  }
+}
