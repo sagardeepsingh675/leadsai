@@ -8,8 +8,13 @@ import {
     Crown,
     Ban,
     CheckCircle,
+    X,
+    Mail,
+    Target,
+    Trash2,
+    RefreshCw,
 } from 'lucide-react';
-import { getAllUsers, updateUserAsAdmin } from '../../lib/supabase';
+import { supabase, getAllUsers, updateUserAsAdmin } from '../../lib/supabase';
 import { formatDate, getInitials } from '../../lib/utils';
 import type { UserProfile, SubscriptionTier } from '../../lib/database.types';
 
@@ -21,7 +26,9 @@ export default function ManageUsers() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
-    const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+    const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+    const [showActionModal, setShowActionModal] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         loadUsers();
@@ -46,22 +53,47 @@ export default function ManageUsers() {
 
     const totalPages = Math.ceil(totalCount / USERS_PER_PAGE);
 
-    const handleUpdateTier = async (userId: string, tier: SubscriptionTier) => {
-        await updateUserAsAdmin(userId, { subscription_tier: tier });
+    const handleUpdateTier = async (tier: SubscriptionTier) => {
+        if (!selectedUser) return;
+        await updateUserAsAdmin(selectedUser.id, { subscription_tier: tier });
         await loadUsers();
-        setActionMenuId(null);
     };
 
-    const handleToggleActive = async (userId: string, isActive: boolean) => {
-        await updateUserAsAdmin(userId, { is_active: !isActive });
+    const handleToggleActive = async () => {
+        if (!selectedUser) return;
+        await updateUserAsAdmin(selectedUser.id, { is_active: !selectedUser.is_active });
         await loadUsers();
-        setActionMenuId(null);
+        setShowActionModal(false);
     };
 
-    const handleMakeAdmin = async (userId: string) => {
-        await updateUserAsAdmin(userId, { role: 'admin' });
+    const handleMakeAdmin = async () => {
+        if (!selectedUser) return;
+        await updateUserAsAdmin(selectedUser.id, { role: selectedUser.role === 'admin' ? 'user' : 'admin' });
         await loadUsers();
-        setActionMenuId(null);
+        setShowActionModal(false);
+    };
+
+    const handleResetUsage = async () => {
+        if (!selectedUser) return;
+        await updateUserAsAdmin(selectedUser.id, {
+            leads_used_this_month: 0,
+            emails_sent_this_month: 0
+        });
+        await loadUsers();
+        setShowActionModal(false);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!selectedUser) return;
+        await supabase.from('user_profiles').delete().eq('id', selectedUser.id);
+        await loadUsers();
+        setShowDeleteConfirm(false);
+        setSelectedUser(null);
+    };
+
+    const openUserActions = (user: UserProfile) => {
+        setSelectedUser(user);
+        setShowActionModal(true);
     };
 
     const tierColors: Record<string, string> = {
@@ -124,7 +156,7 @@ export default function ManageUsers() {
                             </thead>
                             <tbody>
                                 {filteredUsers.map((user) => (
-                                    <tr key={user.id}>
+                                    <tr key={user.id} className="hover:bg-dark-800/50">
                                         <td>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-full flex items-center justify-center text-white font-semibold">
@@ -152,12 +184,8 @@ export default function ManageUsers() {
                                             </span>
                                         </td>
                                         <td className="text-dark-400 text-sm">
-                                            <div>
-                                                {user.leads_used_this_month} leads
-                                            </div>
-                                            <div>
-                                                {user.emails_sent_this_month} emails
-                                            </div>
+                                            <div>{user.leads_used_this_month} leads</div>
+                                            <div>{user.emails_sent_this_month} emails</div>
                                         </td>
                                         <td>
                                             {user.is_active ? (
@@ -176,60 +204,12 @@ export default function ManageUsers() {
                                             {formatDate(user.created_at)}
                                         </td>
                                         <td>
-                                            <div className="relative">
-                                                <button
-                                                    onClick={() => setActionMenuId(actionMenuId === user.id ? null : user.id)}
-                                                    className="p-2 hover:bg-dark-700 rounded-lg"
-                                                >
-                                                    <MoreHorizontal className="w-4 h-4 text-dark-400" />
-                                                </button>
-                                                {actionMenuId === user.id && (
-                                                    <div className="absolute right-0 mt-1 w-48 glass-card p-2 z-10 animate-slide-down">
-                                                        <p className="px-3 py-1 text-xs text-dark-500 uppercase">Change Tier</p>
-                                                        {(['free_trial', 'basic', 'pro', 'ultra_pro'] as SubscriptionTier[]).map((tier) => (
-                                                            <button
-                                                                key={tier}
-                                                                onClick={() => handleUpdateTier(user.id, tier)}
-                                                                className={`w-full px-3 py-2 text-left text-sm rounded-lg ${user.subscription_tier === tier
-                                                                    ? 'bg-primary-500/20 text-primary-400'
-                                                                    : 'text-dark-300 hover:bg-dark-700'
-                                                                    }`}
-                                                            >
-                                                                {tier.replace('_', ' ')}
-                                                            </button>
-                                                        ))}
-                                                        <hr className="my-2 border-dark-700" />
-                                                        {user.role !== 'admin' && (
-                                                            <button
-                                                                onClick={() => handleMakeAdmin(user.id)}
-                                                                className="w-full px-3 py-2 text-left text-sm text-accent-400 hover:bg-accent-500/10 rounded-lg flex items-center gap-2"
-                                                            >
-                                                                <Crown className="w-4 h-4" />
-                                                                Make Admin
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleToggleActive(user.id, user.is_active)}
-                                                            className={`w-full px-3 py-2 text-left text-sm rounded-lg flex items-center gap-2 ${user.is_active
-                                                                ? 'text-red-400 hover:bg-red-500/10'
-                                                                : 'text-green-400 hover:bg-green-500/10'
-                                                                }`}
-                                                        >
-                                                            {user.is_active ? (
-                                                                <>
-                                                                    <Ban className="w-4 h-4" />
-                                                                    Suspend User
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <CheckCircle className="w-4 h-4" />
-                                                                    Activate User
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <button
+                                                onClick={() => openUserActions(user)}
+                                                className="p-2 hover:bg-dark-700 rounded-lg"
+                                            >
+                                                <MoreHorizontal className="w-4 h-4 text-dark-400" />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -267,6 +247,151 @@ export default function ManageUsers() {
                     </div>
                 )}
             </div>
+
+            {/* User Actions Modal */}
+            {showActionModal && selectedUser && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setShowActionModal(false)}>
+                    <div className="glass-card p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-start mb-6">
+                            <h2 className="text-xl font-bold text-white">Manage User</h2>
+                            <button onClick={() => setShowActionModal(false)} className="p-1 hover:bg-dark-700 rounded">
+                                <X className="w-5 h-5 text-dark-400" />
+                            </button>
+                        </div>
+
+                        {/* User Info */}
+                        <div className="flex items-center gap-4 mb-6 p-4 bg-dark-800/50 rounded-xl">
+                            <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                                {selectedUser.full_name ? getInitials(selectedUser.full_name) : '?'}
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-white">{selectedUser.full_name || 'No Name'}</h3>
+                                <p className="text-dark-400 text-sm">{selectedUser.email}</p>
+                                <div className="flex gap-2 mt-1">
+                                    <span className={`badge text-xs ${tierColors[selectedUser.subscription_tier]}`}>
+                                        {selectedUser.subscription_tier.replace('_', ' ')}
+                                    </span>
+                                    {selectedUser.role === 'admin' && (
+                                        <span className="badge-accent text-xs">Admin</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="grid grid-cols-2 gap-3 mb-6">
+                            <div className="p-3 bg-dark-800/50 rounded-lg text-center">
+                                <div className="flex items-center justify-center gap-1 text-dark-400 text-xs mb-1">
+                                    <Target className="w-3 h-3" /> Leads
+                                </div>
+                                <p className="text-xl font-bold text-white">{selectedUser.leads_used_this_month}</p>
+                            </div>
+                            <div className="p-3 bg-dark-800/50 rounded-lg text-center">
+                                <div className="flex items-center justify-center gap-1 text-dark-400 text-xs mb-1">
+                                    <Mail className="w-3 h-3" /> Emails
+                                </div>
+                                <p className="text-xl font-bold text-white">{selectedUser.emails_sent_this_month}</p>
+                            </div>
+                        </div>
+
+                        {/* Change Tier */}
+                        <div className="mb-4">
+                            <p className="text-dark-400 text-sm mb-2">Change Subscription Tier</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(['free_trial', 'basic', 'pro', 'ultra_pro'] as SubscriptionTier[]).map((tier) => (
+                                    <button
+                                        key={tier}
+                                        onClick={() => handleUpdateTier(tier)}
+                                        className={`px-3 py-2 text-sm rounded-lg border transition-all ${selectedUser.subscription_tier === tier
+                                            ? 'bg-primary-500/20 border-primary-500 text-primary-400'
+                                            : 'border-dark-600 text-dark-300 hover:border-dark-500 hover:bg-dark-700'
+                                            }`}
+                                    >
+                                        {tier.replace('_', ' ')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="space-y-2">
+                            <p className="text-dark-400 text-sm mb-2">Quick Actions</p>
+
+                            <button
+                                onClick={handleMakeAdmin}
+                                className="w-full px-4 py-3 text-left text-sm bg-dark-800/50 hover:bg-dark-700 rounded-lg flex items-center gap-3 text-accent-400"
+                            >
+                                <Crown className="w-5 h-5" />
+                                <span>{selectedUser.role === 'admin' ? 'Remove Admin Role' : 'Make Admin'}</span>
+                            </button>
+
+                            <button
+                                onClick={handleResetUsage}
+                                className="w-full px-4 py-3 text-left text-sm bg-dark-800/50 hover:bg-dark-700 rounded-lg flex items-center gap-3 text-blue-400"
+                            >
+                                <RefreshCw className="w-5 h-5" />
+                                <span>Reset Monthly Usage</span>
+                            </button>
+
+                            <button
+                                onClick={handleToggleActive}
+                                className={`w-full px-4 py-3 text-left text-sm bg-dark-800/50 hover:bg-dark-700 rounded-lg flex items-center gap-3 ${selectedUser.is_active ? 'text-yellow-400' : 'text-green-400'
+                                    }`}
+                            >
+                                {selectedUser.is_active ? (
+                                    <>
+                                        <Ban className="w-5 h-5" />
+                                        <span>Suspend User</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="w-5 h-5" />
+                                        <span>Activate User</span>
+                                    </>
+                                )}
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setShowActionModal(false);
+                                    setShowDeleteConfirm(true);
+                                }}
+                                className="w-full px-4 py-3 text-left text-sm bg-red-500/10 hover:bg-red-500/20 rounded-lg flex items-center gap-3 text-red-400"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                                <span>Delete User</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && selectedUser && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="glass-card p-6 w-full max-w-md">
+                        <h2 className="text-xl font-bold text-white mb-4">Delete User?</h2>
+                        <p className="text-dark-400 mb-6">
+                            Are you sure you want to delete <strong className="text-white">{selectedUser.email}</strong>?
+                            This action cannot be undone.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="btn-secondary flex-1"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteUser}
+                                className="btn-primary bg-red-500 hover:bg-red-600 flex-1"
+                            >
+                                Delete User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

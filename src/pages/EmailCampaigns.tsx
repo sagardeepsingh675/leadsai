@@ -13,7 +13,7 @@ import {
     AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getEmailCampaigns } from '../lib/supabase';
+import { getEmailCampaigns, getSmtpConfigs } from '../lib/supabase';
 import { formatRelativeTime } from '../lib/utils';
 import type { EmailCampaign, CampaignStatus } from '../lib/database.types';
 
@@ -33,15 +33,23 @@ export default function EmailCampaigns() {
     const { profile } = useAuth();
     const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hasSmtpConfig, setHasSmtpConfig] = useState(true);
 
     useEffect(() => {
-        async function loadCampaigns() {
+        async function loadData() {
             if (!profile) return;
-            const { data } = await getEmailCampaigns(profile.id);
-            if (data) setCampaigns(data);
+
+            // Load campaigns
+            const { data: campaignData } = await getEmailCampaigns(profile.id);
+            if (campaignData) setCampaigns(campaignData);
+
+            // Check if SMTP is configured
+            const { data: smtpData } = await getSmtpConfigs(profile.id);
+            setHasSmtpConfig(!!(smtpData && smtpData.length > 0));
+
             setLoading(false);
         }
-        loadCampaigns();
+        loadData();
     }, [profile]);
 
     const stats = {
@@ -113,20 +121,22 @@ export default function EmailCampaigns() {
                 </div>
             </div>
 
-            {/* SMTP Warning */}
-            <div className="card p-4 border-yellow-500/30 bg-yellow-500/5 flex items-start gap-4">
-                <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                <div>
-                    <p className="text-white font-medium">Configure SMTP First</p>
-                    <p className="text-dark-400 text-sm">
-                        Before sending campaigns, make sure to{' '}
-                        <Link to="/smtp" className="text-primary-400 hover:underline">
-                            configure your SMTP settings
-                        </Link>{' '}
-                        with your Zoho credentials.
-                    </p>
+            {/* SMTP Warning - Only show if not configured */}
+            {!hasSmtpConfig && (
+                <div className="card p-4 border-yellow-500/30 bg-yellow-500/5 flex items-start gap-4">
+                    <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p className="text-white font-medium">Configure SMTP First</p>
+                        <p className="text-dark-400 text-sm">
+                            Before sending campaigns, make sure to{' '}
+                            <Link to="/smtp" className="text-primary-400 hover:underline">
+                                configure your SMTP settings
+                            </Link>{' '}
+                            with your Zoho credentials.
+                        </p>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Campaigns List */}
             <div className="card overflow-hidden">

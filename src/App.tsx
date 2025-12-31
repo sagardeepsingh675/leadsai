@@ -21,15 +21,19 @@ import Leads from './pages/Leads';
 import EmailCampaigns from './pages/EmailCampaigns';
 import EmailTemplates from './pages/EmailTemplates';
 import SmtpSettings from './pages/SmtpSettings';
+import WhatsAppTemplates from './pages/WhatsAppTemplates';
 import Settings from './pages/Settings';
+import SupportTickets from './pages/SupportTickets';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminAnalytics from './pages/admin/AdminAnalytics';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageSubscriptions from './pages/admin/ManageSubscriptions';
-import AdminApiSettings from './pages/admin/AdminApiSettings';
-import AdminAuditLogs from './pages/admin/AdminAuditLogs';
+import ManageCoupons from './pages/admin/ManageCoupons';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminEmails from './pages/admin/AdminEmails';
+import AdminLogs from './pages/admin/AdminLogs';
+import AdminTickets from './pages/admin/AdminTickets';
 import SiteSettings from './pages/admin/SiteSettings';
 
 // Components
@@ -126,7 +130,9 @@ function App() {
                 <Route path="/leads" element={<Leads />} />
                 <Route path="/campaigns" element={<EmailCampaigns />} />
                 <Route path="/templates" element={<EmailTemplates />} />
+                <Route path="/whatsapp-templates" element={<WhatsAppTemplates />} />
                 <Route path="/smtp" element={<SmtpSettings />} />
+                <Route path="/support" element={<SupportTickets />} />
                 <Route path="/settings" element={<Settings />} />
             </Route>
 
@@ -139,11 +145,13 @@ function App() {
                 }
             >
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/users" element={<ManageUsers />} />
                 <Route path="/admin/subscriptions" element={<ManageSubscriptions />} />
-                <Route path="/admin/api" element={<AdminApiSettings />} />
-                <Route path="/admin/logs" element={<AdminAuditLogs />} />
+                <Route path="/admin/coupons" element={<ManageCoupons />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                <Route path="/admin/emails" element={<AdminEmails />} />
+                <Route path="/admin/logs" element={<AdminLogs />} />
+                <Route path="/admin/tickets" element={<AdminTickets />} />
                 <Route path="/admin/settings" element={<SiteSettings />} />
             </Route>
 

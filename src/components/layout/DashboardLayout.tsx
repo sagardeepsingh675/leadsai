@@ -14,6 +14,8 @@ import {
     Server,
     ChevronDown,
     Crown,
+    HelpCircle,
+    MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials } from '../../lib/utils';
@@ -24,7 +26,9 @@ const sidebarLinks = [
     { name: 'My Leads', href: '/leads', icon: Users },
     { name: 'Email Campaigns', href: '/campaigns', icon: Mail },
     { name: 'Email Templates', href: '/templates', icon: FileText },
+    { name: 'WhatsApp Templates', href: '/whatsapp-templates', icon: MessageCircle },
     { name: 'SMTP Settings', href: '/smtp', icon: Server },
+    { name: 'Support', href: '/support', icon: HelpCircle },
     { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
@@ -131,8 +135,8 @@ export default function DashboardLayout() {
                                 to={link.href}
                                 onClick={() => setIsSidebarOpen(false)}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                        ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30'
-                                        : 'text-dark-300 hover:bg-dark-800 hover:text-white'
+                                    ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30'
+                                    : 'text-dark-300 hover:bg-dark-800 hover:text-white'
                                     }`}
                             >
                                 <Icon className="w-5 h-5" />

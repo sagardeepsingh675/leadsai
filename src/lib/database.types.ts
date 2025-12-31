@@ -664,6 +664,35 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            whatsapp_templates: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    name: string;
+                    message: string;
+                    is_default: boolean;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    name: string;
+                    message: string;
+                    is_default?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    name?: string;
+                    message?: string;
+                    is_default?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+            };
         };
     };
 }
@@ -676,3 +705,5 @@ export type EmailTemplate = Database['public']['Tables']['email_templates']['Row
 export type EmailCampaign = Database['public']['Tables']['email_campaigns']['Row'];
 export type SmtpConfig = Database['public']['Tables']['smtp_configs']['Row'];
 export type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row'];
+export type WhatsAppTemplate = Database['public']['Tables']['whatsapp_templates']['Row'];
+

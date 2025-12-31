@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Pencil, Save, X, Loader2 } from 'lucide-react';
+import { Pencil, Save, X, Loader2, Users } from 'lucide-react';
 import { supabase, getSubscriptionPlans } from '../../lib/supabase';
 import { formatCurrency } from '../../lib/utils';
 import type { SubscriptionPlan } from '../../lib/database.types';
 
+interface PlanStats {
+    tier: string;
+    count: number;
+    color: string;
+}
+
 export default function ManageSubscriptions() {
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+    const [planStats, setPlanStats] = useState<PlanStats[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<SubscriptionPlan>>({});
@@ -13,12 +20,48 @@ export default function ManageSubscriptions() {
 
     useEffect(() => {
         loadPlans();
+        loadPlanStats();
     }, []);
 
     async function loadPlans() {
         const { data } = await getSubscriptionPlans();
         if (data) setPlans(data);
         setLoading(false);
+    }
+
+    async function loadPlanStats() {
+        const { data: users } = await supabase
+            .from('user_profiles')
+            .select('subscription_tier');
+
+        const stats: Record<string, number> = {
+            free_trial: 0,
+            basic: 0,
+            pro: 0,
+            ultra_pro: 0,
+        };
+
+        if (users) {
+            users.forEach(user => {
+                const tier = user.subscription_tier || 'free_trial';
+                if (stats[tier] !== undefined) {
+                    stats[tier]++;
+                }
+            });
+        }
+
+        const colors: Record<string, string> = {
+            free_trial: 'bg-gray-500',
+            basic: 'bg-blue-500',
+            pro: 'bg-purple-500',
+            ultra_pro: 'bg-amber-500',
+        };
+
+        setPlanStats(Object.entries(stats).map(([tier, count]) => ({
+            tier,
+            count,
+            color: colors[tier] || 'bg-gray-500',
+        })));
     }
 
     const handleEdit = (plan: SubscriptionPlan) => {
@@ -56,6 +99,8 @@ export default function ManageSubscriptions() {
         pro: 'Pro',
         ultra_pro: 'Ultra Pro',
     };
+
+    const totalUsers = planStats.reduce((sum, p) => sum + p.count, 0);
 
     return (
         <div className="space-y-6">
@@ -130,27 +175,29 @@ export default function ManageSubscriptions() {
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <button onClick={handleSave} disabled={saving} className="btn-primary btn-sm flex-1">
-                                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                            Save
-                                        </button>
-                                        <button onClick={handleCancel} className="btn-ghost btn-sm">
+                                        <button onClick={handleCancel} className="btn-secondary flex-1">
                                             <X className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
+                                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>
                             ) : (
                                 // View Mode
                                 <>
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="flex justify-between items-start mb-4">
                                         <h3 className="text-lg font-bold text-white">{tierLabels[plan.tier]}</h3>
-                                        <button onClick={() => handleEdit(plan)} className="p-2 hover:bg-dark-700 rounded-lg">
+                                        <button
+                                            onClick={() => handleEdit(plan)}
+                                            className="p-2 hover:bg-dark-700 rounded-lg"
+                                        >
                                             <Pencil className="w-4 h-4 text-dark-400" />
                                         </button>
                                     </div>
 
-                                    <div className="mb-6">
-                                        <span className="text-3xl font-bold text-white">
+                                    <div className="mb-4">
+                                        <span className="text-2xl font-bold text-white">
                                             {plan.price_monthly === 0 ? 'Free' : formatCurrency(plan.price_monthly)}
                                         </span>
                                         {plan.price_monthly > 0 && <span className="text-dark-400">/mo</span>}
@@ -158,20 +205,16 @@ export default function ManageSubscriptions() {
 
                                     <ul className="space-y-2 text-sm text-dark-300">
                                         <li className="flex justify-between">
-                                            <span>Leads/month</span>
-                                            <span className="text-white">
-                                                {plan.leads_per_month >= 999999 ? '∞' : plan.leads_per_month}
-                                            </span>
+                                            <span className="text-primary-400">Leads/month</span>
+                                            <span>{plan.leads_per_month === -1 ? '∞' : plan.leads_per_month}</span>
                                         </li>
                                         <li className="flex justify-between">
-                                            <span>Emails/month</span>
-                                            <span className="text-white">{plan.emails_per_month}</span>
+                                            <span className="text-primary-400">Emails/month</span>
+                                            <span>{plan.emails_per_month === -1 ? '∞' : plan.emails_per_month}</span>
                                         </li>
                                         <li className="flex justify-between">
                                             <span>Templates</span>
-                                            <span className="text-white">
-                                                {plan.templates_limit >= 999999 ? '∞' : plan.templates_limit}
-                                            </span>
+                                            <span>{plan.templates_limit === -1 ? '∞' : plan.templates_limit}</span>
                                         </li>
                                         <li className="flex justify-between">
                                             <span>CSV Export</span>
@@ -193,12 +236,39 @@ export default function ManageSubscriptions() {
                 </div>
             )}
 
-            {/* Usage Stats */}
+            {/* Subscription Distribution */}
             <div className="card p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">Subscription Distribution</h2>
-                <p className="text-dark-400 text-center py-8">
-                    Charts and analytics coming soon...
-                </p>
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-primary-400" />
+                    Subscription Distribution
+                </h2>
+                {totalUsers === 0 ? (
+                    <p className="text-dark-400 text-center py-8">No users yet</p>
+                ) : (
+                    <div className="space-y-4">
+                        {/* Progress bars */}
+                        {planStats.map((stat) => (
+                            <div key={stat.tier} className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-white font-medium">{tierLabels[stat.tier]}</span>
+                                    <span className="text-dark-400">{stat.count} users ({Math.round((stat.count / totalUsers) * 100)}%)</span>
+                                </div>
+                                <div className="h-3 bg-dark-700 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full ${stat.color} rounded-full transition-all`}
+                                        style={{ width: `${Math.max((stat.count / totalUsers) * 100, 2)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Summary */}
+                        <div className="pt-4 border-t border-dark-700 flex justify-between">
+                            <span className="text-dark-400">Total Users</span>
+                            <span className="text-white font-bold">{totalUsers}</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

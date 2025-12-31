@@ -17,11 +17,13 @@ import {
     Instagram,
     Linkedin,
     MapPin,
+    X,
+    Send,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getLeads, deleteLead, updateLead } from '../lib/supabase';
+import { getLeads, deleteLead, updateLead, getWhatsAppTemplates } from '../lib/supabase';
 import { formatRelativeTime, downloadCSV, getStatusBadgeClass } from '../lib/utils';
-import type { Lead, LeadStatus } from '../lib/database.types';
+import type { Lead, LeadStatus, WhatsAppTemplate } from '../lib/database.types';
 
 const LEADS_PER_PAGE = 10;
 
@@ -35,6 +37,12 @@ export default function Leads() {
     const [totalCount, setTotalCount] = useState(0);
     const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
     const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+
+    // WhatsApp Modal State
+    const [whatsappModal, setWhatsappModal] = useState<{ open: boolean; lead: Lead | null }>({ open: false, lead: null });
+    const [whatsappTemplates, setWhatsappTemplates] = useState<WhatsAppTemplate[]>([]);
+    const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplate | null>(null);
+    const [customMessage, setCustomMessage] = useState('');
 
     useEffect(() => {
         loadLeads();
@@ -56,6 +64,43 @@ export default function Leads() {
         }
         setLoading(false);
     }
+
+    // WhatsApp helper functions
+    const openWhatsAppModal = async (lead: Lead) => {
+        if (!profile) return;
+        // Load templates
+        const { data } = await getWhatsAppTemplates(profile.id);
+        setWhatsappTemplates(data || []);
+        // Set default template if available
+        const defaultTemplate = data?.find(t => t.is_default) || data?.[0];
+        setSelectedTemplate(defaultTemplate || null);
+        setCustomMessage(defaultTemplate?.message || '');
+        setWhatsappModal({ open: true, lead });
+    };
+
+    const replaceTemplateVariables = (message: string, lead: Lead) => {
+        return message
+            .replace(/{{business_name}}/g, lead.business_name || '')
+            .replace(/{{city}}/g, lead.city || '')
+            .replace(/{{business_type}}/g, lead.business_type || '')
+            .replace(/{{owner_name}}/g, lead.owner_name || '')
+            .replace(/{{state}}/g, lead.state || '');
+    };
+
+    const handleSendWhatsApp = () => {
+        if (!whatsappModal.lead) return;
+        const lead = whatsappModal.lead;
+        const phone = lead.whatsapp_number || lead.phone;
+        if (!phone) return;
+
+        const cleanPhone = phone.replace(/\D/g, '');
+        const message = replaceTemplateVariables(customMessage, lead);
+        const encodedMessage = encodeURIComponent(message);
+        const url = `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+
+        window.open(url, '_blank');
+        setWhatsappModal({ open: false, lead: null });
+    };
 
     const filteredLeads = leads.filter((lead) =>
         lead.business_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -276,10 +321,14 @@ export default function Leads() {
                                                         <Phone className="w-4 h-4" />
                                                     </a>
                                                 )}
-                                                {lead.whatsapp_number && (
-                                                    <a href={`https://wa.me/${lead.whatsapp_number.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-dark-700 rounded-lg text-dark-400 hover:text-green-500" title="WhatsApp">
+                                                {(lead.whatsapp_number || lead.phone) && (
+                                                    <button
+                                                        onClick={() => openWhatsAppModal(lead)}
+                                                        className="p-1.5 hover:bg-dark-700 rounded-lg text-dark-400 hover:text-green-500"
+                                                        title="Send WhatsApp Message"
+                                                    >
                                                         <MessageCircle className="w-4 h-4" />
-                                                    </a>
+                                                    </button>
                                                 )}
                                                 {lead.email && (
                                                     <a href={`mailto:${lead.email}`} className="p-1.5 hover:bg-dark-700 rounded-lg text-dark-400 hover:text-primary-400" title={lead.email}>
@@ -414,6 +463,94 @@ export default function Leads() {
                     </div>
                 )}
             </div>
+
+            {/* WhatsApp Message Modal */}
+            {whatsappModal.open && whatsappModal.lead && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setWhatsappModal({ open: false, lead: null })}>
+                    <div className="glass-card p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                <MessageCircle className="w-5 h-5 text-green-500" />
+                                Send WhatsApp Message
+                            </h2>
+                            <button onClick={() => setWhatsappModal({ open: false, lead: null })} className="p-1 hover:bg-dark-700 rounded">
+                                <X className="w-5 h-5 text-dark-400" />
+                            </button>
+                        </div>
+
+                        {/* Lead Info */}
+                        <div className="bg-dark-800/50 rounded-lg p-3 mb-4">
+                            <p className="text-white font-medium">{whatsappModal.lead.business_name}</p>
+                            <p className="text-dark-400 text-sm">{whatsappModal.lead.whatsapp_number || whatsappModal.lead.phone}</p>
+                        </div>
+
+                        {/* Template Selection */}
+                        {whatsappTemplates.length > 0 ? (
+                            <div className="mb-4">
+                                <label className="label">Select Template</label>
+                                <select
+                                    value={selectedTemplate?.id || ''}
+                                    onChange={(e) => {
+                                        const template = whatsappTemplates.find(t => t.id === e.target.value);
+                                        setSelectedTemplate(template || null);
+                                        setCustomMessage(template?.message || '');
+                                    }}
+                                    className="select"
+                                >
+                                    <option value="">-- Custom Message --</option>
+                                    {whatsappTemplates.map(t => (
+                                        <option key={t.id} value={t.id}>{t.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <div className="mb-4 p-3 bg-dark-800/50 rounded-lg">
+                                <p className="text-dark-400 text-sm">
+                                    No templates yet.{' '}
+                                    <Link to="/whatsapp-templates" className="text-green-400 hover:underline">
+                                        Create templates
+                                    </Link>{' '}
+                                    for quick messaging.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Message Editor */}
+                        <div className="mb-4">
+                            <label className="label">Message</label>
+                            <textarea
+                                value={customMessage}
+                                onChange={(e) => setCustomMessage(e.target.value)}
+                                className="input min-h-[120px]"
+                                placeholder="Type your message..."
+                            />
+                        </div>
+
+                        {/* Preview */}
+                        <div className="bg-dark-800/50 rounded-lg p-4 mb-4">
+                            <p className="text-dark-400 text-sm mb-2">Preview:</p>
+                            <p className="text-white whitespace-pre-wrap text-sm">
+                                {replaceTemplateVariables(customMessage, whatsappModal.lead) || 'Your message will appear here...'}
+                            </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleSendWhatsApp}
+                                disabled={!customMessage.trim()}
+                                className="btn-primary bg-green-600 hover:bg-green-700 flex-1"
+                            >
+                                <Send className="w-4 h-4" />
+                                Open in WhatsApp
+                            </button>
+                            <button onClick={() => setWhatsappModal({ open: false, lead: null })} className="btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

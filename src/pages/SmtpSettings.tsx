@@ -9,10 +9,20 @@ import {
     EyeOff,
     TestTube,
     Loader2,
+    Mail,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSmtpConfigs, createSmtpConfig, supabase } from '../lib/supabase';
 import type { SmtpConfig } from '../lib/database.types';
+
+type Provider = 'gmail' | 'zoho' | 'outlook' | 'custom';
+
+const SMTP_PRESETS: Record<Provider, { name: string; host: string; port: number; use_tls: boolean }> = {
+    gmail: { name: 'Gmail', host: 'smtp.gmail.com', port: 587, use_tls: true },
+    zoho: { name: 'Zoho Mail', host: 'smtp.zoho.in', port: 587, use_tls: true },
+    outlook: { name: 'Outlook/Hotmail', host: 'smtp.office365.com', port: 587, use_tls: true },
+    custom: { name: 'Custom SMTP', host: '', port: 587, use_tls: true },
+};
 
 export default function SmtpSettings() {
     const { profile } = useAuth();
@@ -22,10 +32,11 @@ export default function SmtpSettings() {
     const [showPassword, setShowPassword] = useState(false);
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+    const [selectedProvider, setSelectedProvider] = useState<Provider>('gmail');
 
     const [newConfig, setNewConfig] = useState({
-        name: 'Zoho Mail',
-        host: 'smtp.zoho.in',
+        name: 'Gmail',
+        host: 'smtp.gmail.com',
         port: 587,
         username: '',
         password_encrypted: '',
@@ -37,6 +48,18 @@ export default function SmtpSettings() {
     useEffect(() => {
         loadConfigs();
     }, [profile]);
+
+    const handleProviderChange = (provider: Provider) => {
+        setSelectedProvider(provider);
+        const preset = SMTP_PRESETS[provider];
+        setNewConfig({
+            ...newConfig,
+            name: preset.name,
+            host: preset.host,
+            port: preset.port,
+            use_tls: preset.use_tls,
+        });
+    };
 
     async function loadConfigs() {
         if (!profile) return;
@@ -58,8 +81,8 @@ export default function SmtpSettings() {
             await loadConfigs();
             setShowAddModal(false);
             setNewConfig({
-                name: 'Zoho Mail',
-                host: 'smtp.zoho.in',
+                name: 'Gmail',
+                host: 'smtp.gmail.com',
                 port: 587,
                 username: '',
                 password_encrypted: '',
@@ -112,45 +135,73 @@ export default function SmtpSettings() {
                 </button>
             </div>
 
-            {/* Zoho Setup Guide */}
-            <div className="card p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Zoho Mail SMTP Setup</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <p className="text-dark-400 text-sm mb-4">
-                            To use Zoho Mail for sending emails, use these settings:
-                        </p>
-                        <ul className="space-y-2 text-sm">
-                            <li className="flex items-center gap-2">
-                                <span className="text-dark-500 w-24">Host:</span>
-                                <code className="bg-dark-800 px-2 py-1 rounded text-primary-400">smtp.zoho.in</code>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="text-dark-500 w-24">Port:</span>
-                                <code className="bg-dark-800 px-2 py-1 rounded text-primary-400">587</code>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="text-dark-500 w-24">Encryption:</span>
-                                <code className="bg-dark-800 px-2 py-1 rounded text-primary-400">TLS</code>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="text-dark-500 w-24">Username:</span>
-                                <span className="text-dark-300">Your Zoho email</span>
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="text-dark-500 w-24">Password:</span>
-                                <span className="text-dark-300">App-specific password</span>
-                            </li>
-                        </ul>
+            {/* Provider Setup Guides */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gmail Guide */}
+                <div className="card p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
+                            <Mail className="w-5 h-5 text-red-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-white">Gmail SMTP Setup</h3>
                     </div>
+                    <ul className="space-y-2 text-sm mb-4">
+                        <li className="flex items-center gap-2">
+                            <span className="text-dark-500 w-24">Host:</span>
+                            <code className="bg-dark-800 px-2 py-1 rounded text-red-400">smtp.gmail.com</code>
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="text-dark-500 w-24">Port:</span>
+                            <code className="bg-dark-800 px-2 py-1 rounded text-red-400">587</code>
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="text-dark-500 w-24">Encryption:</span>
+                            <code className="bg-dark-800 px-2 py-1 rounded text-red-400">TLS</code>
+                        </li>
+                    </ul>
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                        <div className="flex gap-3">
+                            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-white font-medium mb-1">App Password Required</p>
+                                <p className="text-dark-400 text-sm">
+                                    Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="text-red-400 underline">Google App Passwords</a> to generate an app-specific password.
+                                    2FA must be enabled on your account.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Zoho Guide */}
+                <div className="card p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-primary-500/20 rounded-xl flex items-center justify-center">
+                            <Mail className="w-5 h-5 text-primary-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-white">Zoho Mail SMTP Setup</h3>
+                    </div>
+                    <ul className="space-y-2 text-sm mb-4">
+                        <li className="flex items-center gap-2">
+                            <span className="text-dark-500 w-24">Host:</span>
+                            <code className="bg-dark-800 px-2 py-1 rounded text-primary-400">smtp.zoho.in</code>
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="text-dark-500 w-24">Port:</span>
+                            <code className="bg-dark-800 px-2 py-1 rounded text-primary-400">587</code>
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="text-dark-500 w-24">Encryption:</span>
+                            <code className="bg-dark-800 px-2 py-1 rounded text-primary-400">TLS</code>
+                        </li>
+                    </ul>
                     <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
                         <div className="flex gap-3">
                             <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-white font-medium mb-2">Important</p>
+                                <p className="text-white font-medium mb-1">2FA Users</p>
                                 <p className="text-dark-400 text-sm">
-                                    If you have 2FA enabled on Zoho, you'll need to generate an app-specific password
-                                    from Zoho's security settings instead of using your regular password.
+                                    If 2FA is enabled, generate an app-specific password from Zoho's security settings.
                                 </p>
                             </div>
                         </div>
@@ -184,8 +235,16 @@ export default function SmtpSettings() {
                         {configs.map((config) => (
                             <div key={config.id} className="p-6 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-primary-500/20 rounded-xl flex items-center justify-center">
-                                        <Server className="w-6 h-6 text-primary-400" />
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${config.host.includes('gmail') ? 'bg-red-500/20' :
+                                            config.host.includes('zoho') ? 'bg-primary-500/20' :
+                                                config.host.includes('office365') ? 'bg-blue-500/20' :
+                                                    'bg-dark-700'
+                                        }`}>
+                                        <Server className={`w-6 h-6 ${config.host.includes('gmail') ? 'text-red-400' :
+                                                config.host.includes('zoho') ? 'text-primary-400' :
+                                                    config.host.includes('office365') ? 'text-blue-400' :
+                                                        'text-dark-400'
+                                            }`} />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
@@ -217,6 +276,28 @@ export default function SmtpSettings() {
                             <h2 className="text-xl font-bold text-white">Add SMTP Server</h2>
                         </div>
                         <div className="p-6 space-y-4">
+                            {/* Provider Selection */}
+                            <div>
+                                <label className="label">Email Provider</label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {(Object.keys(SMTP_PRESETS) as Provider[]).map((provider) => (
+                                        <button
+                                            key={provider}
+                                            onClick={() => handleProviderChange(provider)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedProvider === provider
+                                                    ? provider === 'gmail' ? 'bg-red-500/20 border-red-500 text-red-400 border' :
+                                                        provider === 'zoho' ? 'bg-primary-500/20 border-primary-500 text-primary-400 border' :
+                                                            provider === 'outlook' ? 'bg-blue-500/20 border-blue-500 text-blue-400 border' :
+                                                                'bg-dark-600 border-dark-500 text-white border'
+                                                    : 'bg-dark-800 border border-dark-700 text-dark-300 hover:border-dark-500'
+                                                }`}
+                                        >
+                                            {SMTP_PRESETS[provider].name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="label">Name</label>
@@ -225,7 +306,7 @@ export default function SmtpSettings() {
                                         value={newConfig.name}
                                         onChange={(e) => setNewConfig({ ...newConfig, name: e.target.value })}
                                         className="input"
-                                        placeholder="Zoho Mail"
+                                        placeholder="My Email"
                                     />
                                 </div>
                                 <div>
@@ -235,7 +316,8 @@ export default function SmtpSettings() {
                                         value={newConfig.host}
                                         onChange={(e) => setNewConfig({ ...newConfig, host: e.target.value })}
                                         className="input"
-                                        placeholder="smtp.zoho.in"
+                                        placeholder="smtp.gmail.com"
+                                        disabled={selectedProvider !== 'custom'}
                                     />
                                 </div>
                             </div>
@@ -248,6 +330,7 @@ export default function SmtpSettings() {
                                         value={newConfig.port}
                                         onChange={(e) => setNewConfig({ ...newConfig, port: parseInt(e.target.value) })}
                                         className="input"
+                                        disabled={selectedProvider !== 'custom'}
                                     />
                                 </div>
                                 <div className="flex items-end">
@@ -264,18 +347,30 @@ export default function SmtpSettings() {
                             </div>
 
                             <div>
-                                <label className="label">Username (Email)</label>
+                                <label className="label">Email Address</label>
                                 <input
                                     type="email"
                                     value={newConfig.username}
-                                    onChange={(e) => setNewConfig({ ...newConfig, username: e.target.value })}
+                                    onChange={(e) => setNewConfig({ ...newConfig, username: e.target.value, from_email: e.target.value })}
                                     className="input"
-                                    placeholder="you@example.com"
+                                    placeholder="you@gmail.com"
                                 />
                             </div>
 
                             <div>
-                                <label className="label">Password / App Password</label>
+                                <label className="label">
+                                    {selectedProvider === 'gmail' ? 'App Password' : 'Password'}
+                                    {selectedProvider === 'gmail' && (
+                                        <a
+                                            href="https://myaccount.google.com/apppasswords"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-red-400 text-xs ml-2 hover:underline"
+                                        >
+                                            Generate App Password →
+                                        </a>
+                                    )}
+                                </label>
                                 <div className="relative">
                                     <input
                                         type={showPassword ? 'text' : 'password'}
@@ -292,36 +387,29 @@ export default function SmtpSettings() {
                                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
                                 </div>
+                                {selectedProvider === 'gmail' && (
+                                    <p className="text-dark-500 text-xs mt-1">
+                                        Use a 16-character app password, not your regular Gmail password
+                                    </p>
+                                )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="label">From Email</label>
-                                    <input
-                                        type="email"
-                                        value={newConfig.from_email}
-                                        onChange={(e) => setNewConfig({ ...newConfig, from_email: e.target.value })}
-                                        className="input"
-                                        placeholder="you@example.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="label">From Name</label>
-                                    <input
-                                        type="text"
-                                        value={newConfig.from_name}
-                                        onChange={(e) => setNewConfig({ ...newConfig, from_name: e.target.value })}
-                                        className="input"
-                                        placeholder="Your Name"
-                                    />
-                                </div>
+                            <div>
+                                <label className="label">From Name (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={newConfig.from_name}
+                                    onChange={(e) => setNewConfig({ ...newConfig, from_name: e.target.value })}
+                                    className="input"
+                                    placeholder="Your Name or Company"
+                                />
                             </div>
 
                             {/* Test Result */}
                             {testResult && (
                                 <div className={`p-4 rounded-xl flex items-center gap-3 ${testResult.success
-                                        ? 'bg-green-500/10 border border-green-500/30 text-green-400'
-                                        : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                                    ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
                                     }`}>
                                     {testResult.success ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                     {testResult.message}

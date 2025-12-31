@@ -8,6 +8,9 @@ import {
     Search,
     Calendar,
     ArrowRight,
+    UserPlus,
+    Target,
+    Clock,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -20,6 +23,14 @@ interface Stats {
     revenueThisMonth: number;
 }
 
+interface Activity {
+    id: string;
+    type: 'user_joined' | 'lead_created' | 'search_made';
+    title: string;
+    subtitle: string;
+    time: string;
+}
+
 export default function AdminDashboard() {
     const [stats, setStats] = useState<Stats>({
         totalUsers: 0,
@@ -29,6 +40,7 @@ export default function AdminDashboard() {
         newUsersToday: 0,
         revenueThisMonth: 0,
     });
+    const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -70,9 +82,77 @@ export default function AdminDashboard() {
                 totalLeads: leadCount || 0,
                 totalEmails: emailCount || 0,
                 newUsersToday: newToday || 0,
-                revenueThisMonth: 0, // Would need payment integration
+                revenueThisMonth: 0,
             });
+
+            // Load recent activity
+            await loadActivities();
             setLoading(false);
+        }
+
+        async function loadActivities() {
+            const activityList: Activity[] = [];
+
+            // Recent users
+            const { data: recentUsers } = await supabase
+                .from('user_profiles')
+                .select('id, full_name, email, created_at')
+                .order('created_at', { ascending: false })
+                .limit(3);
+
+            if (recentUsers) {
+                recentUsers.forEach(user => {
+                    activityList.push({
+                        id: `user-${user.id}`,
+                        type: 'user_joined',
+                        title: user.full_name || 'New user',
+                        subtitle: user.email || 'joined the platform',
+                        time: user.created_at,
+                    });
+                });
+            }
+
+            // Recent leads
+            const { data: recentLeads } = await supabase
+                .from('leads')
+                .select('id, business_name, city, created_at')
+                .order('created_at', { ascending: false })
+                .limit(3);
+
+            if (recentLeads) {
+                recentLeads.forEach(lead => {
+                    activityList.push({
+                        id: `lead-${lead.id}`,
+                        type: 'lead_created',
+                        title: lead.business_name,
+                        subtitle: lead.city ? `Lead from ${lead.city}` : 'New lead saved',
+                        time: lead.created_at,
+                    });
+                });
+            }
+
+            // Recent searches
+            const { data: recentSearches } = await supabase
+                .from('lead_searches')
+                .select('id, business_type, city, state, created_at')
+                .order('created_at', { ascending: false })
+                .limit(3);
+
+            if (recentSearches) {
+                recentSearches.forEach(search => {
+                    activityList.push({
+                        id: `search-${search.id}`,
+                        type: 'search_made',
+                        title: `Search: ${search.business_type || 'Business'}`,
+                        subtitle: [search.city, search.state].filter(Boolean).join(', ') || 'Location search',
+                        time: search.created_at,
+                    });
+                });
+            }
+
+            // Sort by time
+            activityList.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+            setActivities(activityList.slice(0, 8));
         }
 
         loadStats();
@@ -93,6 +173,26 @@ export default function AdminDashboard() {
         accent: 'from-accent-500/20 to-accent-600/20 text-accent-400',
         yellow: 'from-yellow-500/20 to-yellow-600/20 text-yellow-400',
         blue: 'from-blue-500/20 to-blue-600/20 text-blue-400',
+    };
+
+    const activityIcons = {
+        user_joined: { icon: UserPlus, color: 'text-green-400 bg-green-500/20' },
+        lead_created: { icon: Target, color: 'text-blue-400 bg-blue-500/20' },
+        search_made: { icon: Search, color: 'text-purple-400 bg-purple-500/20' },
+    };
+
+    const formatTime = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'Just now';
+        if (mins < 60) return `${mins}m ago`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString();
     };
 
     return (
@@ -173,12 +273,52 @@ export default function AdminDashboard() {
                 </Link>
             </div>
 
-            {/* Recent Activity would go here */}
+            {/* Recent Activity */}
             <div className="card p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
-                <p className="text-dark-400 text-center py-8">
-                    Activity feed coming soon...
-                </p>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+                    <Link to="/admin/logs" className="text-primary-400 text-sm hover:underline">
+                        View all →
+                    </Link>
+                </div>
+                {loading ? (
+                    <div className="space-y-3">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="flex items-center gap-4 p-3 bg-dark-800/50 rounded-lg">
+                                <div className="skeleton w-10 h-10 rounded-lg" />
+                                <div className="flex-1">
+                                    <div className="skeleton h-4 w-32 mb-1 rounded" />
+                                    <div className="skeleton h-3 w-24 rounded" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : activities.length === 0 ? (
+                    <p className="text-dark-400 text-center py-8">
+                        No recent activity yet
+                    </p>
+                ) : (
+                    <div className="space-y-3">
+                        {activities.map((activity) => {
+                            const { icon: Icon, color } = activityIcons[activity.type];
+                            return (
+                                <div key={activity.id} className="flex items-center gap-4 p-3 bg-dark-800/50 rounded-lg hover:bg-dark-700/50 transition-colors">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${color}`}>
+                                        <Icon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-white text-sm font-medium truncate">{activity.title}</p>
+                                        <p className="text-dark-500 text-xs truncate">{activity.subtitle}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-dark-500 text-xs">
+                                        <Clock className="w-3 h-3" />
+                                        {formatTime(activity.time)}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -10,20 +10,24 @@ import {
     X,
     ArrowLeft,
     Crown,
+    Ticket,
     BarChart3,
-    Key,
-    History,
+    Mail,
+    FileText,
+    HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials } from '../../lib/utils';
 
 const adminLinks = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Manage Users', href: '/admin/users', icon: Users },
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
-    { name: 'API Settings', href: '/admin/api', icon: Key },
-    { name: 'Audit Logs', href: '/admin/logs', icon: History },
+    { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
+    { name: 'Support Tickets', href: '/admin/tickets', icon: HelpCircle },
+    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Email Templates', href: '/admin/emails', icon: Mail },
+    { name: 'System Logs', href: '/admin/logs', icon: FileText },
     { name: 'Site Settings', href: '/admin/settings', icon: Settings },
 ];
 

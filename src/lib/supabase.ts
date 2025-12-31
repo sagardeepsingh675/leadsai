@@ -6,7 +6,8 @@ import type {
     EmailTemplate,
     EmailCampaign,
     SmtpConfig,
-    SubscriptionPlan
+    SubscriptionPlan,
+    WhatsAppTemplate
 } from './database.types';
 
 // Supabase configuration
@@ -325,4 +326,42 @@ export const updateUserAsAdmin = async (userId: string, updates: Partial<UserPro
     return { data: data as UserProfile | null, error };
 };
 
+// WhatsApp templates helper functions
+export const getWhatsAppTemplates = async (userId: string) => {
+    const { data, error } = await supabase
+        .from('whatsapp_templates')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+    return { data: data as WhatsAppTemplate[] | null, error };
+};
+
+export const createWhatsAppTemplate = async (template: { user_id: string; name: string; message: string; is_default?: boolean }) => {
+    const { data, error } = await supabase
+        .from('whatsapp_templates')
+        .insert(template)
+        .select()
+        .single();
+    return { data: data as WhatsAppTemplate | null, error };
+};
+
+export const updateWhatsAppTemplate = async (templateId: string, updates: Partial<WhatsAppTemplate>) => {
+    const { data, error } = await supabase
+        .from('whatsapp_templates')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', templateId)
+        .select()
+        .single();
+    return { data: data as WhatsAppTemplate | null, error };
+};
+
+export const deleteWhatsAppTemplate = async (templateId: string) => {
+    const { error } = await supabase
+        .from('whatsapp_templates')
+        .delete()
+        .eq('id', templateId);
+    return { error };
+};
+
 export default supabase;
+
