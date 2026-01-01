@@ -5,7 +5,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const navLinks = [
     { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
     { name: 'Pricing', href: '/pricing' },
+    { name: 'Contact', href: '/contact' },
 ];
 
 export default function Header() {

@@ -274,6 +274,52 @@ export default function Landing() {
                 </div>
             </section>
 
+            {/* Stats Counter Section */}
+            <section className="py-16 bg-dark-900 relative overflow-hidden">
+                <div className="absolute inset-0 grid-pattern opacity-20"></div>
+                <div className="container-custom relative z-10">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        {[
+                            { value: '500+', label: 'Active Users', color: 'from-primary-400 to-primary-600' },
+                            { value: '50K+', label: 'Leads Found', color: 'from-green-400 to-green-600' },
+                            { value: '25K+', label: 'Emails Sent', color: 'from-blue-400 to-blue-600' },
+                            { value: '98%', label: 'Satisfaction', color: 'from-accent-400 to-accent-600' },
+                        ].map((stat, index) => (
+                            <div key={index} className="text-center group">
+                                <div className={`text-4xl md:text-5xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform`}>
+                                    {stat.value}
+                                </div>
+                                <div className="text-dark-400 text-sm md:text-base">{stat.label}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Integrations Section */}
+            <section className="py-12 bg-dark-950">
+                <div className="container-custom">
+                    <div className="text-center mb-8">
+                        <p className="text-dark-500 text-sm uppercase tracking-wider">Works with your favorite tools</p>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+                        {[
+                            { name: 'Gmail', icon: '📧' },
+                            { name: 'Zoho', icon: '📮' },
+                            { name: 'WhatsApp', icon: '💬' },
+                            { name: 'SendGrid', icon: '📨' },
+                            { name: 'CSV Export', icon: '📊' },
+                            { name: 'Google Maps', icon: '🗺️' },
+                        ].map((tool, index) => (
+                            <div key={index} className="flex items-center gap-2 text-dark-400 hover:text-white transition-colors group">
+                                <span className="text-2xl group-hover:scale-110 transition-transform">{tool.icon}</span>
+                                <span className="font-medium">{tool.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* Features Section */}
             <section id="features" className="section bg-dark-950">
                 <div className="container-custom">

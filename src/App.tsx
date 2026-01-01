@@ -12,6 +12,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Pricing from './pages/Pricing';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 // Protected Pages
 import Dashboard from './pages/Dashboard';
@@ -95,6 +97,8 @@ function App() {
             <Route element={<MainLayout />}>
                 <Route path="/" element={<Landing />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
             </Route>
 
             {/* Auth Routes */}

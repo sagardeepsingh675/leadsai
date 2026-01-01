@@ -89,11 +89,11 @@ export default function DashboardLayout() {
 
             {/* Sidebar */}
             <aside
-                className={`fixed top-0 left-0 z-50 h-full w-64 bg-dark-900 border-r border-dark-800 transform transition-transform lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed top-0 left-0 z-50 h-full w-64 bg-dark-900 border-r border-dark-800 transform transition-transform lg:translate-x-0 flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 {/* Sidebar Header */}
-                <div className="flex items-center justify-between p-4 border-b border-dark-800">
+                <div className="flex items-center justify-between p-4 border-b border-dark-800 flex-shrink-0">
                     <Link to="/dashboard" className="flex items-center gap-2">
                         <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center">
                             <Zap className="w-6 h-6 text-white" />
@@ -109,7 +109,7 @@ export default function DashboardLayout() {
                 </div>
 
                 {/* User Info */}
-                <div className="p-4 border-b border-dark-800">
+                <div className="p-4 border-b border-dark-800 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white font-semibold">
                             {profile?.full_name ? getInitials(profile.full_name) : '?'}
@@ -124,8 +124,8 @@ export default function DashboardLayout() {
                     </div>
                 </div>
 
-                {/* Navigation Links */}
-                <nav className="p-4 space-y-1">
+                {/* Navigation Links - Scrollable */}
+                <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto min-h-0">
                     {sidebarLinks.map((link) => {
                         const Icon = link.icon;
                         const isActive = location.pathname === link.href;
@@ -134,38 +134,35 @@ export default function DashboardLayout() {
                                 key={link.name}
                                 to={link.href}
                                 onClick={() => setIsSidebarOpen(false)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${isActive
                                     ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30'
                                     : 'text-dark-300 hover:bg-dark-800 hover:text-white'
                                     }`}
                             >
-                                <Icon className="w-5 h-5" />
+                                <Icon className="w-4 h-4" />
                                 <span className="font-medium">{link.name}</span>
                             </Link>
                         );
                     })}
                 </nav>
 
-                {/* Admin Link */}
-                {isAdmin && (
-                    <div className="px-4 pb-4">
+                {/* Bottom Actions - Fixed at bottom */}
+                <div className="p-3 border-t border-dark-800 space-y-1.5 flex-shrink-0 bg-dark-900">
+                    {/* Admin Link */}
+                    {isAdmin && (
                         <Link
                             to="/admin"
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-accent-500/10 text-accent-400 border border-accent-500/20 hover:bg-accent-500/20 transition-all"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-accent-500/10 text-accent-400 border border-accent-500/20 hover:bg-accent-500/20 transition-all text-sm"
                         >
-                            <Crown className="w-5 h-5" />
+                            <Crown className="w-4 h-4" />
                             <span className="font-medium">Admin Panel</span>
                         </Link>
-                    </div>
-                )}
-
-                {/* Bottom Actions */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-dark-800">
+                    )}
                     <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-dark-300 hover:bg-red-500/10 hover:text-red-400 transition-all"
+                        className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-dark-300 hover:bg-red-500/10 hover:text-red-400 transition-all text-sm"
                     >
-                        <LogOut className="w-5 h-5" />
+                        <LogOut className="w-4 h-4" />
                         <span className="font-medium">Sign Out</span>
                     </button>
                 </div>
