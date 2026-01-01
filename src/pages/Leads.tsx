@@ -19,6 +19,14 @@ import {
     MapPin,
     X,
     Send,
+    Eye,
+    Globe,
+    Clock,
+    Building2,
+    Calendar,
+    Edit3,
+    Save,
+    Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getLeads, deleteLead, updateLead, getWhatsAppTemplates } from '../lib/supabase';
@@ -43,6 +51,11 @@ export default function Leads() {
     const [whatsappTemplates, setWhatsappTemplates] = useState<WhatsAppTemplate[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState<WhatsAppTemplate | null>(null);
     const [customMessage, setCustomMessage] = useState('');
+
+    // Lead Details Modal State
+    const [detailsModal, setDetailsModal] = useState<{ open: boolean; lead: Lead | null }>({ open: false, lead: null });
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState<Partial<Lead>>({});
 
     useEffect(() => {
         loadLeads();
@@ -100,6 +113,57 @@ export default function Leads() {
 
         window.open(url, '_blank');
         setWhatsappModal({ open: false, lead: null });
+    };
+
+    // Lead Details Modal Functions
+    const openDetailsModal = (lead: Lead) => {
+        setDetailsModal({ open: true, lead });
+        setEditForm(lead);
+        setIsEditing(false);
+    };
+
+    const closeDetailsModal = () => {
+        setDetailsModal({ open: false, lead: null });
+        setIsEditing(false);
+        setEditForm({});
+    };
+
+    const handleSaveEnrichment = async () => {
+        if (!detailsModal.lead || !profile) return;
+
+        const { error } = await updateLead(detailsModal.lead.id, editForm);
+        if (!error) {
+            // Update local state
+            setLeads(leads.map(l => l.id === detailsModal.lead!.id ? { ...l, ...editForm } : l));
+            setDetailsModal({ ...detailsModal, lead: { ...detailsModal.lead, ...editForm } as Lead });
+            setIsEditing(false);
+        }
+    };
+
+    // Quick search URL generators
+    const getGoogleSearchUrl = (lead: Lead) => {
+        const query = encodeURIComponent(`${lead.business_name} ${lead.city || ''} ${lead.state || ''}`);
+        return `https://www.google.com/search?q=${query}`;
+    };
+
+    const getFacebookSearchUrl = (lead: Lead) => {
+        const query = encodeURIComponent(lead.business_name);
+        return `https://www.facebook.com/search/pages?q=${query}`;
+    };
+
+    const getInstagramSearchUrl = (lead: Lead) => {
+        const query = encodeURIComponent(lead.business_name.replace(/\s+/g, ''));
+        return `https://www.instagram.com/explore/search/keyword/?q=${query}`;
+    };
+
+    const getLinkedInSearchUrl = (lead: Lead) => {
+        const query = encodeURIComponent(lead.business_name);
+        return `https://www.linkedin.com/search/results/companies/?keywords=${query}`;
+    };
+
+    const getGoogleMapsUrl = (lead: Lead) => {
+        const query = encodeURIComponent(`${lead.business_name} ${lead.address || ''} ${lead.city || ''}`);
+        return `https://www.google.com/maps/search/${query}`;
     };
 
     const filteredLeads = leads.filter((lead) =>
@@ -398,6 +462,14 @@ export default function Leads() {
                                                 {actionMenuId === lead.id && (
                                                     <div className="absolute right-0 mt-1 w-48 glass-card p-2 z-10 animate-slide-down">
                                                         <button
+                                                            onClick={() => { openDetailsModal(lead); setActionMenuId(null); }}
+                                                            className="w-full px-3 py-2 text-left text-sm text-dark-300 hover:bg-dark-700 rounded-lg flex items-center gap-2"
+                                                        >
+                                                            <Eye className="w-4 h-4" />
+                                                            View Details
+                                                        </button>
+                                                        <hr className="my-2 border-dark-700" />
+                                                        <button
                                                             onClick={() => handleUpdateStatus(lead.id, 'contacted')}
                                                             className="w-full px-3 py-2 text-left text-sm text-dark-300 hover:bg-dark-700 rounded-lg"
                                                         >
@@ -547,6 +619,237 @@ export default function Leads() {
                             <button onClick={() => setWhatsappModal({ open: false, lead: null })} className="btn-secondary">
                                 Cancel
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Lead Details Modal */}
+            {detailsModal.open && detailsModal.lead && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={closeDetailsModal}>
+                    <div className="glass-card p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                                    <Building2 className="w-6 h-6 text-primary-400" />
+                                    {detailsModal.lead.business_name}
+                                </h2>
+                                <p className="text-dark-400">{detailsModal.lead.business_type} • {detailsModal.lead.city}, {detailsModal.lead.state}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {isEditing ? (
+                                    <>
+                                        <button onClick={handleSaveEnrichment} className="btn-primary btn-sm">
+                                            <Save className="w-4 h-4" /> Save
+                                        </button>
+                                        <button onClick={() => setIsEditing(false)} className="btn-secondary btn-sm">
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button onClick={() => setIsEditing(true)} className="btn-secondary btn-sm">
+                                        <Edit3 className="w-4 h-4" /> Edit
+                                    </button>
+                                )}
+                                <button onClick={closeDetailsModal} className="p-1 hover:bg-dark-700 rounded">
+                                    <X className="w-5 h-5 text-dark-400" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Quick Search Links */}
+                        <div className="bg-dark-800/50 rounded-lg p-4 mb-6">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Sparkles className="w-4 h-4 text-accent-400" />
+                                <span className="text-sm font-medium text-white">Quick Search & Enrich</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <a href={getGoogleSearchUrl(detailsModal.lead)} target="_blank" rel="noopener noreferrer" className="btn-sm glass-button">
+                                    <Globe className="w-4 h-4" /> Google
+                                </a>
+                                <a href={getGoogleMapsUrl(detailsModal.lead)} target="_blank" rel="noopener noreferrer" className="btn-sm glass-button">
+                                    <MapPin className="w-4 h-4" /> Maps
+                                </a>
+                                <a href={getFacebookSearchUrl(detailsModal.lead)} target="_blank" rel="noopener noreferrer" className="btn-sm glass-button">
+                                    <Facebook className="w-4 h-4" /> Facebook
+                                </a>
+                                <a href={getInstagramSearchUrl(detailsModal.lead)} target="_blank" rel="noopener noreferrer" className="btn-sm glass-button">
+                                    <Instagram className="w-4 h-4" /> Instagram
+                                </a>
+                                <a href={getLinkedInSearchUrl(detailsModal.lead)} target="_blank" rel="noopener noreferrer" className="btn-sm glass-button">
+                                    <Linkedin className="w-4 h-4" /> LinkedIn
+                                </a>
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Contact Information */}
+                            <div className="card p-4">
+                                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                    <Phone className="w-5 h-5 text-primary-400" />
+                                    Contact Info
+                                </h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Phone</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" value={editForm.phone || ''} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+                                        ) : (
+                                            <p className="text-white">{detailsModal.lead.phone || 'Not available'}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">WhatsApp</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" value={editForm.whatsapp_number || ''} onChange={(e) => setEditForm({ ...editForm, whatsapp_number: e.target.value })} />
+                                        ) : (
+                                            <p className="text-white">{detailsModal.lead.whatsapp_number || 'Not available'}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Email</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" value={editForm.email || ''} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                                        ) : (
+                                            <p className="text-white">{detailsModal.lead.email || 'Not available'}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Owner</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" value={editForm.owner_name || ''} onChange={(e) => setEditForm({ ...editForm, owner_name: e.target.value })} />
+                                        ) : (
+                                            <p className="text-white">{detailsModal.lead.owner_name || 'Unknown'}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Business Details */}
+                            <div className="card p-4">
+                                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                    <Building2 className="w-5 h-5 text-accent-400" />
+                                    Business Details
+                                </h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Google Rating</label>
+                                        {isEditing ? (
+                                            <input type="number" step="0.1" className="input input-sm" value={editForm.google_rating || ''} onChange={(e) => setEditForm({ ...editForm, google_rating: parseFloat(e.target.value) || null })} />
+                                        ) : (
+                                            <p className="text-white flex items-center gap-1">
+                                                {detailsModal.lead.google_rating ? (
+                                                    <><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {detailsModal.lead.google_rating} ({detailsModal.lead.review_count} reviews)</>
+                                                ) : 'Not rated'}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Year Established</label>
+                                        {isEditing ? (
+                                            <input type="number" className="input input-sm" value={editForm.year_established || ''} onChange={(e) => setEditForm({ ...editForm, year_established: parseInt(e.target.value) || null })} />
+                                        ) : (
+                                            <p className="text-white flex items-center gap-1">
+                                                <Calendar className="w-4 h-4 text-dark-500" />
+                                                {detailsModal.lead.year_established || 'Unknown'}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Employees</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" value={editForm.employee_count || ''} onChange={(e) => setEditForm({ ...editForm, employee_count: e.target.value })} />
+                                        ) : (
+                                            <p className="text-white">{detailsModal.lead.employee_count || 'Unknown'}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Website</label>
+                                        <p className="text-white">
+                                            {detailsModal.lead.website_url ? (
+                                                <a href={detailsModal.lead.website_url} target="_blank" rel="noopener noreferrer" className="text-primary-400 hover:underline flex items-center gap-1">
+                                                    <Globe className="w-4 h-4" /> Visit
+                                                </a>
+                                            ) : 'No website'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Social Profiles */}
+                            <div className="card p-4">
+                                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                    <Globe className="w-5 h-5 text-blue-400" />
+                                    Social Profiles
+                                </h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Facebook</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" placeholder="https://facebook.com/..." value={editForm.facebook_url || ''} onChange={(e) => setEditForm({ ...editForm, facebook_url: e.target.value })} />
+                                        ) : (
+                                            <p>{detailsModal.lead.facebook_url ? <a href={detailsModal.lead.facebook_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">View Profile</a> : <span className="text-dark-500">Not set</span>}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Instagram</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" placeholder="https://instagram.com/..." value={editForm.instagram_url || ''} onChange={(e) => setEditForm({ ...editForm, instagram_url: e.target.value })} />
+                                        ) : (
+                                            <p>{detailsModal.lead.instagram_url ? <a href={detailsModal.lead.instagram_url} target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:underline">View Profile</a> : <span className="text-dark-500">Not set</span>}</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">LinkedIn</label>
+                                        {isEditing ? (
+                                            <input className="input input-sm" placeholder="https://linkedin.com/..." value={editForm.linkedin_url || ''} onChange={(e) => setEditForm({ ...editForm, linkedin_url: e.target.value })} />
+                                        ) : (
+                                            <p>{detailsModal.lead.linkedin_url ? <a href={detailsModal.lead.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Profile</a> : <span className="text-dark-500">Not set</span>}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Location */}
+                            <div className="card p-4">
+                                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                    <MapPin className="w-5 h-5 text-green-400" />
+                                    Location
+                                </h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">Address</label>
+                                        <p className="text-white">{detailsModal.lead.address || 'Not available'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-dark-500 text-xs uppercase">City/State</label>
+                                        <p className="text-white">{detailsModal.lead.city}, {detailsModal.lead.state}, {detailsModal.lead.country}</p>
+                                    </div>
+                                    {detailsModal.lead.google_maps_url && (
+                                        <a href={detailsModal.lead.google_maps_url} target="_blank" rel="noopener noreferrer" className="btn-sm glass-button inline-flex">
+                                            <MapPin className="w-4 h-4" /> Open in Maps
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Notes Section */}
+                        <div className="card p-4 mt-6">
+                            <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                                <Clock className="w-5 h-5 text-orange-400" />
+                                Notes
+                            </h3>
+                            {isEditing ? (
+                                <textarea
+                                    className="input min-h-[100px]"
+                                    placeholder="Add notes about this lead..."
+                                    value={editForm.notes || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                                />
+                            ) : (
+                                <p className="text-dark-300">{detailsModal.lead.notes || 'No notes yet.'}</p>
+                            )}
                         </div>
                     </div>
                 </div>
