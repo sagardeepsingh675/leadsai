@@ -14,6 +14,7 @@ import {
     ChevronDown,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useSEO, pageSEO } from '../hooks/useSEO';
 
 // Feature Card Component
 interface FeatureCardProps {
@@ -113,6 +114,7 @@ function TestimonialCard({ name, role, content, rating }: TestimonialCardProps) 
 }
 
 export default function Landing() {
+    useSEO(pageSEO.landing);
     const [openFAQ, setOpenFAQ] = useState<number | null>(0);
 
     const features = [

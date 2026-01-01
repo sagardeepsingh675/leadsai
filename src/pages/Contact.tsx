@@ -13,8 +13,10 @@ import {
     Loader2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useSEO, pageSEO } from '../hooks/useSEO';
 
 export default function Contact() {
+    useSEO(pageSEO.contact);
     const [formData, setFormData] = useState({
         name: '',
         email: '',

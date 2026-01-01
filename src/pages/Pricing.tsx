@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Check, X, Zap, Crown, ArrowRight } from 'lucide-react';
+import { useSEO, pageSEO } from '../hooks/useSEO';
 
 interface PricingTier {
     name: string;
@@ -84,8 +85,8 @@ function PricingCard({ tier }: { tier: PricingTier }) {
     return (
         <div
             className={`relative card p-8 flex flex-col ${tier.popular
-                    ? 'border-2 border-primary-500 shadow-lg shadow-primary-500/20'
-                    : ''
+                ? 'border-2 border-primary-500 shadow-lg shadow-primary-500/20'
+                : ''
                 }`}
         >
             {tier.popular && (
@@ -141,6 +142,8 @@ function PricingCard({ tier }: { tier: PricingTier }) {
 }
 
 export default function Pricing() {
+    useSEO(pageSEO.pricing);
+
     return (
         <div className="pt-24 pb-20">
             {/* Header */}

@@ -10,6 +10,7 @@ import {
     Lightbulb,
     Rocket,
 } from 'lucide-react';
+import { useSEO, pageSEO } from '../hooks/useSEO';
 
 // Value Card Component
 interface ValueCardProps {
@@ -51,6 +52,8 @@ function TeamMember({ name, role, bio }: TeamMemberProps) {
 }
 
 export default function About() {
+    useSEO(pageSEO.about);
+
     const values = [
         {
             icon: Target,

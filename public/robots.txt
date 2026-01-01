@@ -1,0 +1,23 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://ai.stachbit.in/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Disallow admin and auth routes
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /search
+Disallow: /leads
+Disallow: /campaigns
+Disallow: /templates
+Disallow: /smtp
+Disallow: /support
