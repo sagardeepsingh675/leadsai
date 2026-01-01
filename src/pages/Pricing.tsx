@@ -84,14 +84,14 @@ const pricingTiers: PricingTier[] = [
 function PricingCard({ tier }: { tier: PricingTier }) {
     return (
         <div
-            className={`relative card p-8 flex flex-col ${tier.popular
-                ? 'border-2 border-primary-500 shadow-lg shadow-primary-500/20'
-                : ''
+            className={`relative card p-8 flex flex-col hover-tilt transition-all duration-300 ${tier.popular
+                ? 'border-2 border-primary-500 shadow-lg shadow-primary-500/20 animate-pulse-glow'
+                : 'hover:border-primary-500/50 hover:shadow-xl hover:shadow-primary-500/10'
                 }`}
         >
             {tier.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="badge-primary flex items-center gap-1">
+                    <span className="badge-primary flex items-center gap-1 animate-pulse">
                         <Crown className="w-3 h-3" />
                         Most Popular
                     </span>

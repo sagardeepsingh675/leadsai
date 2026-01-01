@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import {
-    Zap,
     Search,
     BarChart3,
     Mail,
@@ -12,6 +11,8 @@ import {
     ArrowRight,
     Star,
     ChevronDown,
+    Play,
+    Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useSEO, pageSEO } from '../hooks/useSEO';
@@ -89,24 +90,35 @@ interface TestimonialCardProps {
     role: string;
     content: string;
     rating: number;
+    image?: string;
+    company?: string;
 }
 
-function TestimonialCard({ name, role, content, rating }: TestimonialCardProps) {
+function TestimonialCard({ name, role, content, rating, image, company }: TestimonialCardProps) {
     return (
-        <div className="card p-6">
+        <div className="card p-6 testimonial-enhanced hover-tilt group">
             <div className="flex items-center gap-1 mb-4">
                 {Array.from({ length: rating }).map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400 group-hover:animate-pulse" />
                 ))}
             </div>
-            <p className="text-dark-300 mb-4">"{content}"</p>
-            <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {name.charAt(0)}
-                </div>
+            <p className="text-dark-300 mb-6 text-lg leading-relaxed">"{content}"</p>
+            <div className="flex items-center gap-4">
+                {image ? (
+                    <img
+                        src={image}
+                        alt={name}
+                        className="w-14 h-14 rounded-full object-cover ring-2 ring-primary-500/30"
+                    />
+                ) : (
+                    <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                        {name.charAt(0)}
+                    </div>
+                )}
                 <div>
-                    <p className="text-white font-medium">{name}</p>
-                    <p className="text-dark-500 text-sm">{role}</p>
+                    <p className="text-white font-semibold">{name}</p>
+                    <p className="text-primary-400 text-sm">{role}</p>
+                    {company && <p className="text-dark-500 text-xs">{company}</p>}
                 </div>
             </div>
         </div>
@@ -121,12 +133,12 @@ export default function Landing() {
         {
             icon: Search,
             title: 'Smart Lead Discovery',
-            description: 'Find businesses in any location that need websites using AI-powered search.',
+            description: 'Find potential clients in any industry using AI-powered search across multiple data sources.',
         },
         {
             icon: BarChart3,
-            title: 'Website Analysis',
-            description: 'Automatically analyze website quality, mobile-friendliness, and SSL status.',
+            title: 'Business Analysis',
+            description: 'Analyze business profiles, online presence, and identify high-value prospects.',
         },
         {
             icon: Mail,
@@ -135,8 +147,8 @@ export default function Landing() {
         },
         {
             icon: Shield,
-            title: 'Data Accuracy',
-            description: 'Get verified business data including name, address, and contact info.',
+            title: 'Verified Data',
+            description: 'Get accurate business data including name, address, phone, and email.',
         },
         {
             icon: Clock,
@@ -146,32 +158,32 @@ export default function Landing() {
         {
             icon: Globe,
             title: 'Global Coverage',
-            description: 'Search for businesses worldwide with regional filtering options.',
+            description: 'Search for businesses worldwide with regional and industry filtering.',
         },
     ];
 
     const steps = [
         {
             number: '1',
-            title: 'Search Location',
-            description: 'Enter your target location, business type, and client needs.',
+            title: 'Define Your Target',
+            description: 'Select your target location, industry, and ideal client criteria.',
         },
         {
             number: '2',
-            title: 'Get Leads',
-            description: 'Our AI finds businesses and analyzes their website quality.',
+            title: 'Get Quality Leads',
+            description: 'Our AI finds matching businesses with verified contact information.',
         },
         {
             number: '3',
-            title: 'Send Emails',
-            description: 'Create personalized email campaigns and track responses.',
+            title: 'Reach Out',
+            description: 'Send personalized emails and WhatsApp messages to convert leads.',
         },
     ];
 
     const faqs = [
         {
-            question: 'How does Stachbit find potential clients?',
-            answer: 'Stachbit uses OpenStreetMap and other public data sources to find businesses in your target area. Our AI then analyzes their online presence to identify those who need website services.',
+            question: 'What types of businesses can I find leads for?',
+            answer: 'Stachbit works for any business type! Whether you offer web development, advertising, marketing, consulting, or any other B2B service - find clients who need what you sell.',
         },
         {
             question: 'Is there a free trial available?',
@@ -183,32 +195,38 @@ export default function Landing() {
         },
         {
             question: 'How accurate is the business data?',
-            answer: 'Our data comes from verified public sources. Website analysis is done in real-time to ensure accuracy.',
+            answer: 'Our data comes from verified public sources including Google Maps, directories, and business registrations.',
         },
         {
-            question: 'Can I export leads to CSV?',
-            answer: 'Yes, all paid plans include the ability to export your leads to CSV for use in other tools.',
+            question: 'Can I filter leads by industry?',
+            answer: 'Yes! Filter by industry, location, company size, and more to find your ideal clients.',
         },
     ];
 
     const testimonials = [
         {
-            name: 'Rahul S.',
-            role: 'Web Developer',
-            content: 'Stachbit helped me find 50 new clients in my first month. The website analysis feature is incredibly accurate!',
+            name: 'Rahul Sharma',
+            role: 'Marketing Agency Owner',
+            company: 'TechCraft Solutions',
+            content: 'Stachbit helped me find 50 new advertising clients in my first month. The targeting is incredibly accurate!',
             rating: 5,
+            image: '/images/testimonial_avatar_male_1.png',
         },
         {
-            name: 'Priya M.',
-            role: 'Agency Owner',
-            content: 'We\'ve streamlined our outreach process completely. The personalized email templates save us hours every week.',
+            name: 'Priya Mehta',
+            role: 'Digital Agency Owner',
+            company: 'Digital Dreams Agency',
+            content: 'We use it to find clients for web design, SEO, and social media services. The ROI is amazing!',
             rating: 5,
+            image: '/images/testimonial_avatar_female.png',
         },
         {
-            name: 'Amit K.',
-            role: 'Freelancer',
-            content: 'Finally, a lead gen tool that actually works! The free trial convinced me within 2 days.',
+            name: 'Amit Kumar',
+            role: 'Business Consultant',
+            company: 'AK Consulting',
+            content: 'Finally, a lead gen tool that works for any business! I find new consulting clients every week.',
             rating: 5,
+            image: '/images/testimonial_avatar_male_2.png',
         },
     ];
 
@@ -222,54 +240,95 @@ export default function Landing() {
                 <div className="glow-orb glow-orb-primary w-96 h-96 -top-48 -right-48"></div>
                 <div className="glow-orb glow-orb-accent w-80 h-80 bottom-0 left-1/4"></div>
 
+                {/* Floating Particles */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="particle"></div>
+                    <div className="particle"></div>
+                    <div className="particle"></div>
+                    <div className="particle"></div>
+                    <div className="particle"></div>
+                    <div className="particle"></div>
+                </div>
+
                 <div className="container-custom relative z-10">
-                    <div className="max-w-4xl mx-auto text-center">
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full mb-8 animate-fade-in">
-                            <Zap className="w-4 h-4 text-primary-400" />
-                            <span className="text-sm text-dark-200">AI-Powered Lead Generation</span>
+                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        {/* Left - Content */}
+                        <div className="text-center lg:text-left">
+                            {/* Badge */}
+                            <div className="inline-flex items-center gap-2 px-4 py-2 glass rounded-full mb-8 animate-fade-in">
+                                <Sparkles className="w-4 h-4 text-primary-400 animate-pulse" />
+                                <span className="text-sm text-dark-200">AI-Powered Lead Generation</span>
+                                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full font-medium">New</span>
+                            </div>
+
+                            {/* Headline */}
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-slide-up">
+                                Find Leads For
+                                <span className="block gradient-text typing-cursor">Your Business</span>
+                            </h1>
+
+                            {/* Subheadline */}
+                            <p className="text-lg md:text-xl text-dark-300 mb-10 max-w-xl animate-slide-up" style={{ animationDelay: '100ms' }}>
+                                Discover potential clients in any industry. Whether you offer websites, advertising,
+                                marketing, or consulting — find businesses that need your services.
+                            </p>
+
+                            {/* CTA Buttons */}
+                            <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
+                                <Link to="/register" className="btn-primary btn-lg btn-shimmer animate-pulse-glow group">
+                                    <Play className="w-5 h-5" />
+                                    Start Free Trial
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                                <Link to="/pricing" className="btn-secondary btn-lg">
+                                    View Pricing
+                                </Link>
+                            </div>
+
+                            {/* Social Proof */}
+                            <div className="mt-12 flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-6 text-dark-400 animate-fade-in" style={{ animationDelay: '400ms' }}>
+                                <div className="flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-primary-400" />
+                                    <span className="font-semibold text-white">500+</span>
+                                    <span>Active Users</span>
+                                </div>
+                                <div className="hidden sm:block w-1 h-1 bg-dark-600 rounded-full"></div>
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="w-5 h-5 text-green-400" />
+                                    <span className="font-semibold text-white">50K+</span>
+                                    <span>Leads Found</span>
+                                </div>
+                                <div className="hidden sm:block w-1 h-1 bg-dark-600 rounded-full"></div>
+                                <div className="flex items-center gap-1">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                    ))}
+                                    <span className="ml-1 font-semibold text-white">4.9</span>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Headline */}
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 animate-slide-up">
-                            Find Clients Who
-                            <span className="block gradient-text">Need Websites</span>
-                        </h1>
-
-                        {/* Subheadline */}
-                        <p className="text-lg md:text-xl text-dark-300 mb-10 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '100ms' }}>
-                            Automatically discover businesses without websites or with outdated ones.
-                            Extract contact data and send personalized email campaigns.
-                        </p>
-
-                        {/* CTA Buttons */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
-                            <Link to="/register" className="btn-primary btn-lg group">
-                                Start Free Trial
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                            <Link to="/pricing" className="btn-secondary btn-lg">
-                                View Pricing
-                            </Link>
-                        </div>
-
-                        {/* Social Proof */}
-                        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 text-dark-400 animate-fade-in" style={{ animationDelay: '400ms' }}>
-                            <div className="flex items-center gap-2">
-                                <Users className="w-5 h-5 text-primary-400" />
-                                <span>500+ Active Users</span>
-                            </div>
-                            <div className="hidden sm:block w-1 h-1 bg-dark-600 rounded-full"></div>
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2 className="w-5 h-5 text-green-400" />
-                                <span>10,000+ Leads Generated</span>
-                            </div>
-                            <div className="hidden sm:block w-1 h-1 bg-dark-600 rounded-full"></div>
-                            <div className="flex items-center gap-1">
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                ))}
-                                <span className="ml-1">4.9/5</span>
+                        {/* Right - Dashboard Mockup */}
+                        <div className="relative animate-scale-reveal hidden lg:block" style={{ animationDelay: '300ms' }}>
+                            <div className="relative animate-float-slow">
+                                <img
+                                    src="/images/hero_dashboard_mockup.png"
+                                    alt="Stachbit AI Lead Generator Dashboard"
+                                    className="w-full rounded-2xl mockup-shadow hover-tilt"
+                                />
+                                {/* Floating Feature Badges */}
+                                <div className="absolute -top-4 -left-4 glass rounded-xl px-4 py-2 animate-float-medium">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                        <span className="text-sm text-white font-medium">Live Lead Discovery</span>
+                                    </div>
+                                </div>
+                                <div className="absolute -bottom-4 -right-4 glass rounded-xl px-4 py-2 animate-float-fast">
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="w-4 h-4 text-primary-400" />
+                                        <span className="text-sm text-white font-medium">Auto Email Outreach</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -418,7 +477,7 @@ export default function Landing() {
                         Ready to Find Your Next Client?
                     </h2>
                     <p className="text-lg text-dark-200 mb-8 max-w-2xl mx-auto">
-                        Join hundreds of web developers and agencies who use Stachbit to automate their lead generation.
+                        Join hundreds of businesses who use Stachbit to automate lead generation and grow their client base.
                     </p>
                     <Link to="/register" className="btn-primary btn-lg">
                         Start Your Free Trial
