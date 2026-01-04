@@ -37,6 +37,8 @@ import AdminEmails from './pages/admin/AdminEmails';
 import AdminLogs from './pages/admin/AdminLogs';
 import AdminTickets from './pages/admin/AdminTickets';
 import SiteSettings from './pages/admin/SiteSettings';
+import AdminInquiries from './pages/admin/AdminInquiries';
+import ManagePortfolio from './pages/admin/ManagePortfolio';
 
 // Components
 import LoadingScreen from './components/ui/LoadingScreen';
@@ -156,6 +158,8 @@ function App() {
                 <Route path="/admin/emails" element={<AdminEmails />} />
                 <Route path="/admin/logs" element={<AdminLogs />} />
                 <Route path="/admin/tickets" element={<AdminTickets />} />
+                <Route path="/admin/inquiries" element={<AdminInquiries />} />
+                <Route path="/admin/portfolio" element={<ManagePortfolio />} />
                 <Route path="/admin/settings" element={<SiteSettings />} />
             </Route>
 

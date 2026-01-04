@@ -319,26 +319,60 @@ export default function LeadResults() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h3 className="text-lg font-semibold text-white mb-1">{result.name}</h3>
-                                        <p className="text-dark-400 text-sm flex items-center gap-2">
-                                            <MapPin className="w-4 h-4" />
-                                            {result.address}
-                                        </p>
-                                        {result.phone && (
-                                            <p className="text-dark-400 text-sm flex items-center gap-2 mt-1">
-                                                <Phone className="w-4 h-4" />
-                                                {result.phone}
-                                            </p>
-                                        )}
-                                        {result.website && (
-                                            <a
-                                                href={result.website}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-primary-400 text-sm flex items-center gap-2 mt-1 hover:underline"
-                                            >
-                                                <ExternalLink className="w-4 h-4" />
-                                                {result.website}
-                                            </a>
+
+                                        {/* Show full details only if saved */}
+                                        {result.saved ? (
+                                            <>
+                                                <p className="text-dark-400 text-sm flex items-center gap-2">
+                                                    <MapPin className="w-4 h-4" />
+                                                    {result.address}
+                                                </p>
+                                                {result.phone && (
+                                                    <p className="text-dark-400 text-sm flex items-center gap-2 mt-1">
+                                                        <Phone className="w-4 h-4" />
+                                                        {result.phone}
+                                                    </p>
+                                                )}
+                                                {result.website && (
+                                                    <a
+                                                        href={result.website}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-primary-400 text-sm flex items-center gap-2 mt-1 hover:underline"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                        {result.website}
+                                                    </a>
+                                                )}
+                                            </>
+                                        ) : (
+                                            /* Show masked details with availability indicators */
+                                            <div className="flex flex-wrap items-center gap-3 mt-2">
+                                                {result.address && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-dark-700/50 rounded-lg text-dark-400 text-xs">
+                                                        <MapPin className="w-3.5 h-3.5 text-green-400" />
+                                                        Address Available
+                                                    </span>
+                                                )}
+                                                {result.phone && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-dark-700/50 rounded-lg text-dark-400 text-xs">
+                                                        <Phone className="w-3.5 h-3.5 text-blue-400" />
+                                                        Phone Available
+                                                    </span>
+                                                )}
+                                                {result.website && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-dark-700/50 rounded-lg text-dark-400 text-xs">
+                                                        <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
+                                                        Website Available
+                                                    </span>
+                                                )}
+                                                {!result.website && (
+                                                    <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-red-500/10 rounded-lg text-red-400 text-xs">
+                                                        <XCircle className="w-3.5 h-3.5" />
+                                                        No Website
+                                                    </span>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 </div>

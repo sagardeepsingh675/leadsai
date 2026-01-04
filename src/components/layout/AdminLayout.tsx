@@ -15,6 +15,8 @@ import {
     Mail,
     FileText,
     HelpCircle,
+    Inbox,
+    FolderKanban,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getInitials } from '../../lib/utils';
@@ -25,6 +27,8 @@ const adminLinks = [
     { name: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
     { name: 'Coupons', href: '/admin/coupons', icon: Ticket },
     { name: 'Support Tickets', href: '/admin/tickets', icon: HelpCircle },
+    { name: 'Website Inquiries', href: '/admin/inquiries', icon: Inbox },
+    { name: 'Portfolio', href: '/admin/portfolio', icon: FolderKanban },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Email Templates', href: '/admin/emails', icon: Mail },
     { name: 'System Logs', href: '/admin/logs', icon: FileText },
