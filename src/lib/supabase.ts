@@ -363,5 +363,95 @@ export const deleteWhatsAppTemplate = async (templateId: string) => {
     return { error };
 };
 
+// ===== Contact Settings (Public Read) =====
+export interface ContactSettings {
+    contact_email: string;
+    contact_phone: string;
+    contact_location: string;
+    contact_address: string;
+    response_time: string;
+    whatsapp_number: string;
+    business_hours: string;
+    support_email: string;
+}
+
+export const getContactSettings = async (): Promise<ContactSettings> => {
+    const { data, error } = await supabase
+        .from('site_contact_settings')
+        .select('setting_key, setting_value')
+        .eq('is_active', true);
+
+    if (error || !data) {
+        // Return defaults
+        return {
+            contact_email: 'hello@stachbit.in',
+            contact_phone: '+91 98765 43210',
+            contact_location: 'India',
+            contact_address: '',
+            response_time: 'Within 24 hours',
+            whatsapp_number: '+919876543210',
+            business_hours: 'Mon-Fri: 9AM - 6PM IST',
+            support_email: 'support@stachbit.in',
+        };
+    }
+
+    const settings: Record<string, string> = {};
+    data.forEach((item: { setting_key: string; setting_value: string | null }) => {
+        settings[item.setting_key] = item.setting_value || '';
+    });
+
+    return {
+        contact_email: settings.contact_email || 'hello@stachbit.in',
+        contact_phone: settings.contact_phone || '+91 98765 43210',
+        contact_location: settings.contact_location || 'India',
+        contact_address: settings.contact_address || '',
+        response_time: settings.response_time || 'Within 24 hours',
+        whatsapp_number: settings.whatsapp_number || '+919876543210',
+        business_hours: settings.business_hours || 'Mon-Fri: 9AM - 6PM IST',
+        support_email: settings.support_email || 'support@stachbit.in',
+    };
+};
+
+export interface SocialLinks {
+    twitter: string;
+    facebook: string;
+    instagram: string;
+    linkedin: string;
+    youtube: string;
+    github: string;
+}
+
+export const getSocialLinks = async (): Promise<SocialLinks> => {
+    const { data, error } = await supabase
+        .from('site_social_links')
+        .select('platform, url')
+        .eq('is_active', true);
+
+    if (error || !data) {
+        return {
+            twitter: '',
+            facebook: '',
+            instagram: '',
+            linkedin: '',
+            youtube: '',
+            github: '',
+        };
+    }
+
+    const links: Record<string, string> = {};
+    data.forEach((item: { platform: string; url: string | null }) => {
+        links[item.platform] = item.url || '';
+    });
+
+    return {
+        twitter: links.twitter || '',
+        facebook: links.facebook || '',
+        instagram: links.instagram || '',
+        linkedin: links.linkedin || '',
+        youtube: links.youtube || '',
+        github: links.github || '',
+    };
+};
+
 export default supabase;
 

@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, Mail, Phone, MapPin, Twitter, Linkedin, Github } from 'lucide-react';
+import { Mail, Phone, MapPin, Twitter, Linkedin, Github } from 'lucide-react';
+import { getContactSettings, getSocialLinks, type ContactSettings, type SocialLinks } from '../../lib/supabase';
 
 const footerLinks = {
     product: [
@@ -23,6 +25,32 @@ const footerLinks = {
 
 export default function Footer() {
     const currentYear = new Date().getFullYear();
+    const [contactInfo, setContactInfo] = useState<ContactSettings | null>(null);
+    const [socialLinksData, setSocialLinksData] = useState<SocialLinks | null>(null);
+
+    useEffect(() => {
+        async function loadSettings() {
+            const [contact, social] = await Promise.all([
+                getContactSettings(),
+                getSocialLinks(),
+            ]);
+            setContactInfo(contact);
+            setSocialLinksData(social);
+        }
+        loadSettings();
+    }, []);
+
+    // Default values while loading
+    const email = contactInfo?.contact_email || 'support@stachbit.in';
+    const phone = contactInfo?.contact_phone || '+91 98765 43210';
+    const location = contactInfo?.contact_location || 'India';
+
+    // Build social links array
+    const activeSocialLinks = socialLinksData ? [
+        { name: 'Twitter', icon: Twitter, href: socialLinksData.twitter },
+        { name: 'LinkedIn', icon: Linkedin, href: socialLinksData.linkedin },
+        { name: 'GitHub', icon: Github, href: socialLinksData.github },
+    ].filter(link => link.href) : [];
 
     return (
         <footer className="bg-dark-900 border-t border-dark-800">
@@ -31,9 +59,15 @@ export default function Footer() {
                     {/* Brand Column */}
                     <div className="lg:col-span-2">
                         <Link to="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center">
-                                <Zap className="w-6 h-6 text-white" />
-                            </div>
+                            <img
+                                src="/logo.png"
+                                alt="Stachbit Logo"
+                                className="w-10 h-10 rounded-xl object-contain"
+                                onError={(e) => {
+                                    // Fallback to text if logo doesn't exist
+                                    e.currentTarget.style.display = 'none';
+                                }}
+                            />
                             <span className="text-xl font-bold gradient-text">Stachbit</span>
                         </Link>
                         <p className="text-dark-400 mb-6 max-w-sm">
@@ -41,15 +75,31 @@ export default function Footer() {
                             Automate your outreach and grow your client base.
                         </p>
                         <div className="flex items-center gap-4">
-                            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 glass-button rounded-full flex items-center justify-center hover:text-primary-400 transition-colors">
-                                <Twitter className="w-5 h-5" />
-                            </a>
-                            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 glass-button rounded-full flex items-center justify-center hover:text-primary-400 transition-colors">
-                                <Linkedin className="w-5 h-5" />
-                            </a>
-                            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 glass-button rounded-full flex items-center justify-center hover:text-primary-400 transition-colors">
-                                <Github className="w-5 h-5" />
-                            </a>
+                            {activeSocialLinks.length > 0 ? (
+                                activeSocialLinks.map((item) => (
+                                    <a
+                                        key={item.name}
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-10 h-10 glass-button rounded-full flex items-center justify-center hover:text-primary-400 transition-colors"
+                                    >
+                                        <item.icon className="w-5 h-5" />
+                                    </a>
+                                ))
+                            ) : (
+                                <>
+                                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 glass-button rounded-full flex items-center justify-center hover:text-primary-400 transition-colors">
+                                        <Twitter className="w-5 h-5" />
+                                    </a>
+                                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 glass-button rounded-full flex items-center justify-center hover:text-primary-400 transition-colors">
+                                        <Linkedin className="w-5 h-5" />
+                                    </a>
+                                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 glass-button rounded-full flex items-center justify-center hover:text-primary-400 transition-colors">
+                                        <Github className="w-5 h-5" />
+                                    </a>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -87,15 +137,19 @@ export default function Footer() {
                         <ul className="space-y-3">
                             <li className="flex items-center gap-3 text-dark-400">
                                 <Mail className="w-4 h-4 text-primary-400" />
-                                <span>support@stachbit.in</span>
+                                <a href={`mailto:${email}`} className="hover:text-primary-400 transition-colors">
+                                    {email}
+                                </a>
                             </li>
                             <li className="flex items-center gap-3 text-dark-400">
                                 <Phone className="w-4 h-4 text-primary-400" />
-                                <span>+91 98765 43210</span>
+                                <a href={`tel:${phone.replace(/\s/g, '')}`} className="hover:text-primary-400 transition-colors">
+                                    {phone}
+                                </a>
                             </li>
                             <li className="flex items-start gap-3 text-dark-400">
                                 <MapPin className="w-4 h-4 text-primary-400 mt-1" />
-                                <span>Bengaluru, Karnataka, India</span>
+                                <span>{location}</span>
                             </li>
                         </ul>
                     </div>
@@ -116,3 +170,4 @@ export default function Footer() {
         </footer>
     );
 }
+

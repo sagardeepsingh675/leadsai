@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Mail,
@@ -12,7 +12,7 @@ import {
     CheckCircle2,
     Loader2,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, getContactSettings, type ContactSettings } from '../lib/supabase';
 import { useSEO, pageSEO } from '../hooks/useSEO';
 
 export default function Contact() {
@@ -26,6 +26,15 @@ export default function Contact() {
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
     const [error, setError] = useState('');
+    const [contactSettings, setContactSettings] = useState<ContactSettings | null>(null);
+
+    useEffect(() => {
+        async function loadContactSettings() {
+            const settings = await getContactSettings();
+            setContactSettings(settings);
+        }
+        loadContactSettings();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,23 +70,24 @@ export default function Contact() {
         }
     };
 
+    // Use dynamic contact info from database
     const contactInfo = [
         {
             icon: Mail,
             title: 'Email Us',
-            value: 'support@stachbit.com',
-            description: 'We reply within 24 hours',
+            value: contactSettings?.contact_email || 'support@stachbit.com',
+            description: contactSettings?.response_time || 'We reply within 24 hours',
         },
         {
             icon: Phone,
             title: 'Call Us',
-            value: '+91 9876543210',
-            description: 'Mon-Fri 9AM-6PM IST',
+            value: contactSettings?.contact_phone || '+91 9876543210',
+            description: contactSettings?.business_hours || 'Mon-Fri 9AM-6PM IST',
         },
         {
             icon: MapPin,
             title: 'Office',
-            value: 'New Delhi, India',
+            value: contactSettings?.contact_location || 'India',
             description: 'Remote-first company',
         },
     ];
