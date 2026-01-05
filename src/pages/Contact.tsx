@@ -47,7 +47,7 @@ export default function Contact() {
         setError('');
 
         try {
-            // Save to contact_submissions table (you may need to create this)
+            // Save to contact_submissions table
             const { error: dbError } = await supabase
                 .from('contact_submissions')
                 .insert({
@@ -55,9 +55,30 @@ export default function Contact() {
                     email: formData.email,
                     subject: formData.subject || 'General Inquiry',
                     message: formData.message,
+                    source: 'ai.stachbit.in',
                 });
 
             if (dbError) throw dbError;
+
+            // Trigger email notification (fire and forget - don't block on errors)
+            try {
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                if (supabaseUrl) {
+                    fetch(`${supabaseUrl}/functions/v1/send-contact-notification`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: formData.name,
+                            email: formData.email,
+                            subject: formData.subject || 'AI Lead Tool Inquiry',
+                            message: formData.message,
+                            source: 'ai.stachbit.in',
+                        }),
+                    }).catch(console.error);
+                }
+            } catch (emailErr) {
+                console.error('Email notification error:', emailErr);
+            }
 
             setSent(true);
             setFormData({ name: '', email: '', subject: '', message: '' });
